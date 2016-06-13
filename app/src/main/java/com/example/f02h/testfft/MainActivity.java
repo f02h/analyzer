@@ -10,7 +10,22 @@ import android.graphics.Path;
 import android.view.View;
 import android.content.Context;
 
+import android.app.Activity;
+import android.widget.LinearLayout;
+import android.os.Bundle;
+import android.os.Environment;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.content.Context;
+import android.util.Log;
+import android.media.MediaRecorder;
+import android.media.MediaPlayer;
+
 import com.example.f02h.testfft.analysis.FFT;
+import com.example.f02h.testfft.analysis.PlayButton;
+import com.example.f02h.testfft.analysis.RecordButton;
 import com.example.f02h.testfft.analysis.FourierTransform;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
@@ -18,6 +33,13 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 
 
 public class MainActivity extends AppCompatActivity {
+
+
+
+    private RecordButton mRecordButton = null;
+    private PlayButton   mPlayButton = null;
+    public static String mFileName = null;
+    public static final String LOG_TAG = "AudioRecordTest";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
         FFT fft = new FFT( 1024, 44100 );
 
 
+        mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
+        mFileName += "/audiorecordtest.3gp";
 
         for( int i = 0; i < samples.length; i++ )
         {
@@ -52,9 +76,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-//        Plot plot = new Plot( "Note A Spectrum", 512, 512);
-//        plot.plot(fft.getSpectrum(), 1, Color.BLUE );
-
         GraphView graph = (GraphView) findViewById(R.id.graph);
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(test);
         graph.addSeries(series);
@@ -62,5 +83,7 @@ public class MainActivity extends AppCompatActivity {
         LineGraphSeries<DataPoint> series2 = new LineGraphSeries<DataPoint>(test2);
         graph2.addSeries(series2);
     }
+
+
 
 }

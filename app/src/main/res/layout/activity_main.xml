@@ -12,14 +12,33 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="Hello World!"
+        android:id="@+id/textView" />
     <com.jjoe64.graphview.GraphView
         android:layout_width="match_parent"
         android:layout_height="200dip"
         android:id="@+id/graph" />
     <com.jjoe64.graphview.GraphView
-        android:layout_marginTop="500px"
+        android:layout_marginTop="30dp"
         android:layout_width="match_parent"
         android:layout_height="200dip"
-        android:id="@+id/graph2" />
+        android:id="@+id/graph2"
+        android:layout_below="@+id/graph"
+        android:layout_alignParentEnd="true" />
+
+    <com.example.f02h.testfft.analysis.PlayButton
+        android:layout_width="300px"
+        android:layout_height="100px"
+        android:id="@+id/PlayButton"
+        android:text="PlayButton"
+        android:layout_alignParentBottom="true"
+        android:layout_alignEnd="@+id/graph2" />
+
+    <com.example.f02h.testfft.analysis.RecordButton
+        android:layout_width="300px"
+        android:layout_height="100px"
+        android:id="@+id/RecordButton"
+        android:text="RecordButton"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/graph2"  />
 </RelativeLayout>
