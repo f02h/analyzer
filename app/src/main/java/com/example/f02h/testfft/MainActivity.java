@@ -31,6 +31,8 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.io.File;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private PlayButton   mPlayButton = null;
     public static String mFileName = null;
     public static final String LOG_TAG = "AudioRecordTest";
+    public static float samples3[];
+    public static GraphView graph;
+    public static GraphView graph2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,9 +57,11 @@ public class MainActivity extends AppCompatActivity {
         float samples[] = new float[1024];
         FFT fft = new FFT( 1024, 44100 );
 
+        graph = (GraphView) findViewById(R.id.graph);
+        graph2 = (GraphView) findViewById(R.id.graph2);
 
-        mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
-        mFileName += "/audiorecordtest.3gp";
+//        mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
+//        mFileName += "/audiorecordtest.3gp";
 
         for( int i = 0; i < samples.length; i++ )
         {
@@ -74,12 +81,12 @@ public class MainActivity extends AppCompatActivity {
         {
             test2[i] = new DataPoint(i,samples[i]);
         }
+        ;
+    }
 
-
-        GraphView graph = (GraphView) findViewById(R.id.graph);
+    public static void setGraphs(DataPoint[] test, DataPoint[] test2) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(test);
         graph.addSeries(series);
-        GraphView graph2 = (GraphView) findViewById(R.id.graph2);
         LineGraphSeries<DataPoint> series2 = new LineGraphSeries<DataPoint>(test2);
         graph2.addSeries(series2);
     }
