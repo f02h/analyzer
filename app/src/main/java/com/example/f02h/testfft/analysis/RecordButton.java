@@ -31,6 +31,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public  class RecordButton extends Button {
     boolean mStartRecording = true;
@@ -163,7 +166,9 @@ public  class RecordButton extends Button {
         if (!file.exists()) {
             file.mkdirs();
         }
-        MainActivity.mFileName = file.getAbsolutePath() + "/" + System.currentTimeMillis() + AUDIO_RECORDER_FILE_EXT_WAV;
+
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+        MainActivity.mFileName = file.getAbsolutePath() + "/" + df.format(new Date()) + AUDIO_RECORDER_FILE_EXT_WAV;
         return (MainActivity.mFileName);
     }
 
@@ -210,7 +215,7 @@ public  class RecordButton extends Button {
             AudioTrack track = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                     bufferSizeInBytes, AudioTrack.MODE_STREAM);
 
-            track.play();
+//            track.play();
             track.write(audioData, 0, bufferSizeInBytes);
         }
         catch (FileNotFoundException e)

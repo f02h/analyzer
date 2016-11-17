@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
         {
             test2[i] = new DataPoint(i,samples[i]);
         }
+
+        MainActivity.setGraphs(test,test2);
     }
 
     public static void setGraphs(DataPoint[] test, DataPoint[] test2) {
