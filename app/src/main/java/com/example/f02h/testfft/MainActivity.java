@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
         {
             test2[i] = new DataPoint(i,samples[i]);
         }
-        ;
     }
 
     public static void setGraphs(DataPoint[] test, DataPoint[] test2) {
@@ -90,7 +89,4 @@ public class MainActivity extends AppCompatActivity {
         LineGraphSeries<DataPoint> series2 = new LineGraphSeries<DataPoint>(test2);
         graph2.addSeries(series2);
     }
-
-
-
 }
