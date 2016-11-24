@@ -32,6 +32,7 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.io.File;
+import java.util.Random;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -45,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
     public static float samples3[];
     public static GraphView graph;
     public static GraphView graph2;
+    public static View mainView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,9 +66,10 @@ public class MainActivity extends AppCompatActivity {
 //        mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
 //        mFileName += "/audiorecordtest.3gp";
 
+        Random rand = new Random();
         for( int i = 0; i < samples.length; i++ )
         {
-            samples[i] = (float)Math.sin( angle );
+            samples[i] = (float)Math.sin( angle ) + rand.nextInt(10)+1;
             angle += increment;
         }
 
@@ -82,6 +86,35 @@ public class MainActivity extends AppCompatActivity {
             test2[i] = new DataPoint(i,samples[i]);
         }
 
+        MainActivity.setGraphs(test,test2);
+    }
+
+    public static void setupData (float[] samples) {
+        // one sec 1024 samples
+        int samplePerSec = 1024;
+        int sec = (int)Math.ceil((double)samples.length / samplePerSec);
+        sec = (sec == 0) ? 1 : sec;
+
+        float[] finalSamples = new float[samplePerSec];
+        for (int i = 0; i < ((samplePerSec > samples.length) ? samples.length :samplePerSec ); i++) {
+            finalSamples[i] = samples[i];
+        }
+
+        FFT fft = new FFT( samplePerSec, 44100 );
+        fft.forward( finalSamples );
+        float[] testSpectrum = fft.getSpectrum();
+        DataPoint[] test = new DataPoint[testSpectrum.length];
+        DataPoint[] test2 = new DataPoint[finalSamples.length];
+        for( int i = 0; i < testSpectrum.length; i++ )
+        {
+            test[i] = new DataPoint(i,testSpectrum[i]);
+        }
+        for( int i = 0; i < finalSamples.length; i++ )
+        {
+            test2[i] = new DataPoint(i,finalSamples[i]);
+        }
+        graph.removeAllSeries();
+        graph2.removeAllSeries();
         MainActivity.setGraphs(test,test2);
     }
 

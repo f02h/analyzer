@@ -8,6 +8,7 @@ import android.media.MediaRecorder;
 import android.media.AudioRecord;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -30,7 +31,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.CharBuffer;
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -53,13 +60,15 @@ public  class RecordButton extends Button {
     private Thread thread;
     private float[] sample;
     private float[] samples = new float[512];
+    private float[] finalAudioFloats;
 
-    private AudioRecord mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100 ,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT,2*minBufferSize );
+    private AudioRecord mRecorder;
 
     OnClickListener clicker = new OnClickListener() {
         public void onClick(View v) {
             Log.i("button click", "******");
             if (mStartRecording) {
+                mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100 ,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT,2*minBufferSize );
                 setText("Stop recording");
                 thread = new Thread(new Runnable() {
                     public void run() {
@@ -67,11 +76,13 @@ public  class RecordButton extends Button {
                         startRecording();
                     }
                 });
-
                 thread.start();
                 isRecording = true;
             } else {
                 stopRecording();
+                if (finalAudioFloats != null) {
+                    MainActivity.setupData(finalAudioFloats);
+                }
                 setText("Start recording");
 
             }
@@ -135,16 +146,10 @@ public  class RecordButton extends Button {
             }
             dos.flush();
             dos.close();
-//        mRecorder = new MediaRecorder();
-//        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-//        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-//        mRecorder.setOutputFile(MainActivity.mFileName);
-//        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        copyWaveFile(getTempFilename(),getFilename());
-        deleteTempFile();
+
     }
 
     private void stopRecording() {
@@ -152,7 +157,8 @@ public  class RecordButton extends Button {
         mRecorder.stop();
         mRecorder.release();
 
-
+        copyWaveFile(getTempFilename(),getFilename());
+        deleteTempFile();
 
 
 //        MainActivity.setGraphs(test, test2);
@@ -238,15 +244,6 @@ public  class RecordButton extends Button {
         long byteRate = RECORDER_BPP * RECORDER_SAMPLERATE * channels/8;
 //
         byte[] data = new byte[bufferSize];
-//        final FloatBuffer fb = ByteBuffer.wrap(data).asFloatBuffer();
-//        sample = new float[fb.capacity()];
-//        fb.get(sample);
-//
-//        for (int i = 0; i < 512; i++){
-//            samples[i] = sample[i];
-//        }
-//
-
 
         try {
             in = new FileInputStream(inFilename);
@@ -256,22 +253,42 @@ public  class RecordButton extends Button {
 
             Log.i("File size: ", ""+totalDataLen);
 
+            int avgFactor = 44;
+            int floatArraySize = ((int) totalDataLen)/2;
+
+            float[] audioFloats = new float[floatArraySize];
+            finalAudioFloats = new float[floatArraySize/avgFactor];
+            int index = 0;
             WriteWaveFileHeader(out, totalAudioLen, totalDataLen,
                     longSampleRate, channels, byteRate);
 
             while(in.read(data) != -1) {
                 out.write(data);
-                final FloatBuffer fb = ByteBuffer.wrap(data).asFloatBuffer();
-                sample = new float[fb.capacity()];
-                fb.get(sample);
 
-                for (int i = 0; i < 512; i++){
-                    samples[i] = sample[i];
+                ShortBuffer sbuf = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
+                short[] audioShorts = new short[sbuf.capacity()];
+                sbuf.get(audioShorts);
+
+                for (int i = 0; i < audioShorts.length; i++) {
+                    audioFloats[index] = ((float)audioShorts[i]/44100);
+                    index++;
                 }
+            }
+
+            index = 0;
+            float avg = 0;
+            for (int i = 0; i < floatArraySize; i++) {
+                if (i%(avgFactor+1) == 0) {
+                    finalAudioFloats[index] = avg / avgFactor;
+                    avg = 0;
+                    index++;
+                }
+                avg += audioFloats[i];
             }
 
             in.close();
             out.close();
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
