@@ -30,6 +30,7 @@ import com.example.f02h.testfft.analysis.FourierTransform;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.PointsGraphSeries;
 
 import java.io.File;
 import java.util.Random;
@@ -116,6 +117,17 @@ public class MainActivity extends AppCompatActivity {
         graph.removeAllSeries();
         graph2.removeAllSeries();
         MainActivity.setGraphs(test,test2);
+    }
+
+    public static void setupDataWindowed (float[][] samples) {
+        for (int i = 0; i < 1; i++) {
+            DataPoint[] test2 = new DataPoint[1024];
+            for (int j = 0; j < 1024; j++) {
+                test2[j] = new DataPoint(i,samples[i][j]);
+            }
+            PointsGraphSeries<DataPoint> series = new PointsGraphSeries<DataPoint>(test2);
+            graph2.addSeries(series);
+        }
     }
 
     public static void setGraphs(DataPoint[] test, DataPoint[] test2) {

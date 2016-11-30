@@ -60,7 +60,7 @@ public  class RecordButton extends Button {
     private Thread thread;
     private float[] sample;
     private float[] samples = new float[512];
-    private float[] finalAudioFloats;
+    private float[][] finalAudioFloats;
 
     private AudioRecord mRecorder;
 
@@ -81,7 +81,7 @@ public  class RecordButton extends Button {
             } else {
                 stopRecording();
                 if (finalAudioFloats != null) {
-                    MainActivity.setupData(finalAudioFloats);
+                    MainActivity.setupDataWindowed(finalAudioFloats);
                 }
                 setText("Start recording");
 
@@ -242,8 +242,101 @@ public  class RecordButton extends Button {
         long longSampleRate = RECORDER_SAMPLERATE;
         int channels = 2;
         long byteRate = RECORDER_BPP * RECORDER_SAMPLERATE * channels/8;
+
+        int windowSize = 1024;
+
+        byte[] data = new byte[bufferSize];
+
+//        #start capture from Mic
+//        while true:
+//
+//        #into values capture 2048 points from your mic
+//        values=dataFromMic(Chunk);
+//        #Apply Window hanning = multiply window function(hanning) over your 2048 points
+//        for i 1:Chunk:
+//        windowed[i] = values[i] * hanning[i]
+//        #Apply FFT
+//        fftData=fft(windowed);
+//        #Get Magnitude (linear scale) of first half values
+//        Mag=abs(fftData(1:Chunk/2))
+//        # update/show results
+//        plot(Mag)
+//
+//        end
+
+        try {
+            in = new FileInputStream(inFilename);
+            out = new FileOutputStream(outFilename);
+            totalAudioLen = in.getChannel().size();
+            totalDataLen = totalAudioLen + 36;
+
+
+            Log.i("File size: ", ""+totalDataLen);
+
+            int avgFactor = 44;
+            int floatArraySize = ((int) totalDataLen)/2;
+            // windowed
+//            double[] windowed = new double[windowSize];
+//            double[] hanning = new double[windowSize];
+//
+//            for (int i = 0; i < windowSize; i++) {
+//                hanning[i] = ((1 - Math.cos(i*2*Math.PI/windowSize-1))/2);
+//            }
+
+            float[] audioFloats = new float[floatArraySize];
+            finalAudioFloats = new float[10000][windowSize];
+
+            WriteWaveFileHeader(out, totalAudioLen, totalDataLen,
+                    longSampleRate, channels, byteRate);
+
+            FFT fft = new FFT( windowSize, 44100 );
+            fft.window(1); // set hamming window
+
+            int index = 0;
+
+            while(in.read(data) != -1) {
+                out.write(data);
+
+                ShortBuffer sbuf = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
+                short[] audioShorts = new short[windowSize];
+                float[] newaudioFloats = new float[windowSize];
+                sbuf.get(audioShorts);
+
+                for (int i = 0; i < audioShorts.length; i++) {
+                    newaudioFloats[i] =  (float)audioShorts[i];
+                }
+
+                fft.forward(newaudioFloats);
+                float[] testSpectrum = fft.getSpectrum();
+
+                for (int i = 0; i < testSpectrum.length; i++) {
+                    finalAudioFloats[index][i] = testSpectrum[i];
+                }
+
+                index++;
+            }
+            in.close();
+            out.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void copyWaveFileWindowed(String inFilename,String outFilename){
+        FileInputStream in = null;
+        FileOutputStream out = null;
+        long totalAudioLen = 0;
+        long totalDataLen = totalAudioLen + 36;
+        long longSampleRate = RECORDER_SAMPLERATE;
+        int channels = 2;
+        long byteRate = RECORDER_BPP * RECORDER_SAMPLERATE * channels/8;
 //
         byte[] data = new byte[bufferSize];
+
+
 
         try {
             in = new FileInputStream(inFilename);
@@ -257,7 +350,7 @@ public  class RecordButton extends Button {
             int floatArraySize = ((int) totalDataLen)/2;
 
             float[] audioFloats = new float[floatArraySize];
-            finalAudioFloats = new float[floatArraySize/avgFactor];
+//            finalAudioFloats = new float[floatArraySize/avgFactor];
             int index = 0;
             WriteWaveFileHeader(out, totalAudioLen, totalDataLen,
                     longSampleRate, channels, byteRate);
@@ -279,7 +372,7 @@ public  class RecordButton extends Button {
             float avg = 0;
             for (int i = 0; i < floatArraySize; i++) {
                 if (i%(avgFactor+1) == 0) {
-                    finalAudioFloats[index] = avg / avgFactor;
+//                    finalAudioFloats[index] = avg / avgFactor;
                     avg = 0;
                     index++;
                 }
