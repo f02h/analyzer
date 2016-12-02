@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.example.f02h.testfft.MainActivity;
+import com.example.f02h.testfft.R;
 
 import java.io.IOException;
 
@@ -46,14 +47,8 @@ public class PlayButton extends Button {
     }
 
     private void startPlaying() {
-        mPlayer = new MediaPlayer();
-        try {
-            mPlayer.setDataSource(MainActivity.mFileName);
-            mPlayer.prepare();
-            mPlayer.start();
-        } catch (IOException e) {
-            Log.e(MainActivity.LOG_TAG, "prepare() failed");
-        }
+        mPlayer = MediaPlayer.create(MainActivity.getAppContext(), R.raw.sp10);
+        mPlayer.start();
     }
 
     private void stopPlaying() {

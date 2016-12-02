@@ -38,7 +38,11 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static Context context;
 
+    public static Context getAppContext() {
+        return MainActivity.context;
+    }
 
     private RecordButton mRecordButton = null;
     private PlayButton   mPlayButton = null;
@@ -53,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        MainActivity.context = getApplicationContext();
         setContentView(R.layout.activity_main);
 
         final float frequency = 440; // Note A
@@ -60,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         float angle = 0;
         float samples[] = new float[1024];
         FFT fft = new FFT( 1024, 44100 );
+
 
         graph = (GraphView) findViewById(R.id.graph);
         graph2 = (GraphView) findViewById(R.id.graph2);
@@ -120,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static void setupDataWindowed (float[][] samples) {
+
         for (int i = 0; i < 1; i++) {
             DataPoint[] test2 = new DataPoint[1024];
             for (int j = 0; j < 1024; j++) {
