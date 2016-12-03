@@ -47,7 +47,7 @@ public class PlayButton extends Button {
     }
 
     private void startPlaying() {
-        mPlayer = MediaPlayer.create(MainActivity.getAppContext(), R.raw.sp10);
+        mPlayer = MediaPlayer.create(MainActivity.getAppContext(), R.raw.piano2);
         mPlayer.start();
     }
 

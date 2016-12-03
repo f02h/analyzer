@@ -14,16 +14,6 @@
         android:layout_height="wrap_content"
         android:text=""
         android:id="@+id/textView" />
-    <com.jjoe64.graphview.GraphView
-        android:layout_width="match_parent"
-        android:layout_height="200dip"
-        android:id="@+id/graph" />
-    <com.jjoe64.graphview.GraphView
-        android:layout_width="match_parent"
-        android:layout_height="200dip"
-        android:id="@+id/graph2"
-        android:layout_below="@+id/graph"
-        android:layout_alignParentStart="true" />
 
 
     <com.example.f02h.testfft.analysis.RecordButton
@@ -38,8 +28,8 @@
         android:layout_height="100px"
         android:id="@+id/Spectro"
         android:text="Spectro"
-        android:layout_alignBottom="@+id/PlayButton"
-        android:layout_alignEnd="@+id/graph2" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true" />
 
     <com.example.f02h.testfft.analysis.PlayButton
         android:layout_width="200px"
