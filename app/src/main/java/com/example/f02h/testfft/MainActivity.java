@@ -102,6 +102,10 @@ public class MainActivity extends AppCompatActivity {
     public static float mux;
     public static float smux;
 
+    public static double[] melFilters;
+    public static double[] mel2Hz;
+    public static double[] bin;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

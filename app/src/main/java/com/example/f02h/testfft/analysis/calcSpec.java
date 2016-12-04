@@ -52,10 +52,24 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
 //        spectroCopy.setPixels(pixels, 0, spectroCopy.getWidth(), 0, 0, spectroCopy.getWidth(), spectroCopy.getHeight());
 
         MainActivity.left.setImageBitmap(spectro);
+        calculateMel();
+        int test = 1;
     }
 
     public static double scale(final double valueIn, final double baseMin, final double baseMax, final double limitMin, final double limitMax) {
         return ((limitMax - limitMin) * (valueIn - baseMin) / (baseMax - baseMin)) + limitMin;
+    }
+
+    public static double[] linearScale(final double baseMin, final double baseMax, int nbrOfValues) {
+        double[] result = new double[nbrOfValues];
+        double step = (baseMax - baseMin) / ((double)nbrOfValues - 1);
+        int index = 0;
+        double value = 0.0;
+        for (int i = 0; i < nbrOfValues; i++) {
+            result[i] = value;
+            value += step;
+        }
+        return result;
     }
 
     public static float[] getColor(double power)
@@ -170,6 +184,83 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         //fft.inverse(real_mod,imag_mod,res);
 
     }
+
+    private void calculateMel() {
+        int nbrOfMelFilters = 40;
+        int startMelFreq = 0;
+        double endMelFreq = (2595 * Math.log10(1 + ((8000 / 2.0) / 700.0)));
+        MainActivity.melFilters = linearScale(startMelFreq, endMelFreq, nbrOfMelFilters + 2);
+        MainActivity.mel2Hz = new double[MainActivity.melFilters.length];
+        for (int i = 0; i < MainActivity.melFilters.length; i++) {
+            MainActivity.mel2Hz[i] = (700 * (Math.pow(10, MainActivity.melFilters[i] / 2595) - 1));
+        }
+
+        MainActivity.bin = new double[MainActivity.melFilters.length];
+        for (int i = 0; i < MainActivity.melFilters.length; i++) {
+            MainActivity.bin[i] = Math.floor((512 + 1) * MainActivity.mel2Hz[i] / 8000);
+        }
+
+        float[][] fbank = new float[40][(int)(512 / 2) + 1];
+
+        for (int i = 0; i < fbank.length; i++) {
+            for (int j = 0; j < fbank[0].length; j++) {
+                fbank[i][j] = (float)0.0;
+            }
+        }
+
+        for (int i = 1; i < 41; i++) {
+            int fleft = (int)MainActivity.bin[i-1];
+            int fcenter = (int)MainActivity.bin[i];
+            int fright = (int)MainActivity.bin[i+1];
+
+            for (int j = fleft; j < fcenter; j++) {
+                fbank[i - 1][j] = (float)((j - MainActivity.bin[i - 1]) / (MainActivity.bin[i] - MainActivity.bin[i - 1]));
+            }
+            for (int j = fcenter; j < fright; j++) {
+                fbank[i - 1][j] = (float)(((MainActivity.bin[i + 1] - j) / (MainActivity.bin[i + 1] - MainActivity.bin[i])));
+            }
+        }
+//        MainActivity.spec = multiplyByMatrix(MainActivity.spec, transposeMatrx(fbank));
+
+//        filter_banks = numpy.where(filter_banks == 0, numpy.finfo(float).eps, filter_banks)  # Numerical Stability
+//        filter_banks = 20 * numpy.log10(filter_banks)  # dB
+        for (int i = 0; i < MainActivity.spec.length; i++) {
+            for (int j = 0; j < MainActivity.spec[0].length; j++) {
+                MainActivity.spec[i][j] = (float)(20 * Math.log10((double)MainActivity.spec[i][j]));
+            }
+        }
+
+    }
+
+    public static float[][] multiplyByMatrix(float[][] matrix1, float[][] matrix2) {
+        int m1ColLength = matrix1[0].length; // m1 columns length
+        int m2RowLength = matrix2.length;    // m2 rows length
+        if(m1ColLength != m2RowLength) return null; // matrix multiplication is not possible
+        int mRRowLength = matrix1.length;    // m result rows length
+        int mRColLength = matrix2[0].length; // m result columns length
+        float[][] mResult = new float[mRRowLength][mRColLength];
+        for(int i = 0; i < mRRowLength; i++) {         // rows from m1
+            for(int j = 0; j < mRColLength; j++) {     // columns from m2
+                for(int k = 0; k < m1ColLength; k++) { // columns from m1
+                    mResult[i][j] += matrix1[i][k] * matrix2[k][j];
+                }
+            }
+        }
+        return mResult;
+    }
+
+    public static float[][] transposeMatrx (float[][] matrix) {
+        float[][] result = new float[matrix[0].length][matrix.length];
+        if (matrix.length > 0) {
+            for (int i = 0; i < matrix[0].length; i++) {
+                for (int j = 0; j < matrix.length; j++) {
+                    result[i][j] = matrix[j][i];
+                }
+            }
+        }
+        return result;
+    }
+
     /**
      * Calculates the mean of the fft magnitude spectrum
      * @param nsegs
