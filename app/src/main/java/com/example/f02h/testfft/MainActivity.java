@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
     public static double[] real =null;
     public static double[] imag= null;
     public static double[] mag =null;
+    public static double[] magTmp =null;
     public static double[] phase = null;
     public static double[] logmag = null;
     public static float [][] framed;
@@ -93,12 +94,13 @@ public class MainActivity extends AppCompatActivity {
     public static float [] array;
     public static float [] wn;
     public static double[] nmag;
-    public static float [][] spec;
+    public static double [][] spec;
+    public static double [][] spec1;
     public static float [] array2;
     public static float max;
     public static float min;
-    public static float smax;
-    public static float smin;
+    public static double smax;
+    public static double smin;
     public static float mux;
     public static float smux;
 
@@ -119,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("spectro button click", "******");
                 try{
                     SetupUI();
-                    audioBuf = WaveTools.wavread("sp10.wav", MainActivity.getAppContext());
+                    audioBuf = WaveTools.wavread("sp11.wav", MainActivity.getAppContext());
                     String dummy = "test";
                     new calcSpec().execute(dummy);
                 }catch(Exception e){

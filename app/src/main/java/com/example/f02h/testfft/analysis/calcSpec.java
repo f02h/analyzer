@@ -85,7 +85,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         return  new float[]{ (float)H, (float)S, (float)B };
     }
 
-    public static Bitmap bitmapFromArray(float[][] pixels2d){
+    public static Bitmap bitmapFromArray(double[][] pixels2d){
         int width = pixels2d[0].length;
         int height = pixels2d.length;
         int[] pixels = new int[width * height];
@@ -113,7 +113,8 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
      */
     public void specGram(float [] data, float nsegs, int nshift, int seglen){
 
-        MainActivity.spec = new float[seglen][(int)nsegs];
+        MainActivity.spec = new double[seglen][(int)nsegs];
+        MainActivity.spec1 = new double[seglen][(int)nsegs];
         MainActivity.array2 = new float[seglen];
         MainActivity.seg_len = seglen;
         MainActivity.n_segs = nsegs;
@@ -139,6 +140,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         MainActivity.real = new double[MainActivity.seg_len];
         MainActivity.imag= new double[MainActivity.seg_len];
         MainActivity.mag = new double[MainActivity.seg_len];
+        MainActivity.magTmp = new double[MainActivity.seg_len];
         MainActivity.phase = new double[MainActivity.seg_len];
         MainActivity.logmag = new double[MainActivity.seg_len];
         MainActivity.nmag = new double[MainActivity.seg_len];
@@ -165,6 +167,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
                 MainActivity.imag[i] = (double) MainActivity.tmpi[i];
 
                 MainActivity.mag[i] = Math.sqrt((MainActivity.real[i]*MainActivity.real[i]) + (MainActivity.imag[i]*MainActivity.imag[i]));
+                MainActivity.magTmp[i] = MainActivity.mag[i];
                 MainActivity.mag[i] = Math.abs(MainActivity.mag[i]/MainActivity.seg_len);
 
 
@@ -174,7 +177,8 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
                 /****Reconstruction****/
                 //real_mod[i] = (float) (mag[i] * Math.cos(phase[i]));
                 //imag_mod[i] = (float) (mag[i] * Math.sin(phase[i]));
-                MainActivity.spec[(MainActivity.seg_len-1)-i][j] = (float) MainActivity.logmag[i];
+                MainActivity.spec[(MainActivity.seg_len-1)-i][j] = MainActivity.logmag[i];
+                MainActivity.spec1[(MainActivity.seg_len-1)-i][j] = (1.0/512)*(MainActivity.magTmp[i] * MainActivity.magTmp[1]); // TODO research
 
                 //Log.d("SpecGram","log= "+logmag[i]);
             }
@@ -188,7 +192,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
     private void calculateMel() {
         int nbrOfMelFilters = 40;
         int startMelFreq = 0;
-        double endMelFreq = (2595 * Math.log10(1 + ((8000 / 2.0) / 700.0)));
+        double endMelFreq = 2595 * Math.log10(1 + (8000 / 2.0) / 700.0);
         MainActivity.melFilters = linearScale(startMelFreq, endMelFreq, nbrOfMelFilters + 2);
         MainActivity.mel2Hz = new double[MainActivity.melFilters.length];
         for (int i = 0; i < MainActivity.melFilters.length; i++) {
@@ -200,11 +204,12 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
             MainActivity.bin[i] = Math.floor((512 + 1) * MainActivity.mel2Hz[i] / 8000);
         }
 
-        float[][] fbank = new float[40][(int)(512 / 2) + 1];
+//        double [][] fbank = new double[40][(int)(512 / 2) + 1]; TODO double check why +1
+        double [][] fbank = new double[40][(int)(512 / 2)];
 
         for (int i = 0; i < fbank.length; i++) {
             for (int j = 0; j < fbank[0].length; j++) {
-                fbank[i][j] = (float)0.0;
+                fbank[i][j] = 0.0;
             }
         }
 
@@ -214,31 +219,114 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
             int fright = (int)MainActivity.bin[i+1];
 
             for (int j = fleft; j < fcenter; j++) {
-                fbank[i - 1][j] = (float)((j - MainActivity.bin[i - 1]) / (MainActivity.bin[i] - MainActivity.bin[i - 1]));
+                fbank[i - 1][j] = ((j - MainActivity.bin[i - 1]) / (MainActivity.bin[i] - MainActivity.bin[i - 1]));
             }
             for (int j = fcenter; j < fright; j++) {
-                fbank[i - 1][j] = (float)(((MainActivity.bin[i + 1] - j) / (MainActivity.bin[i + 1] - MainActivity.bin[i])));
+                fbank[i - 1][j] = (((MainActivity.bin[i + 1] - j) / (MainActivity.bin[i + 1] - MainActivity.bin[i])));
             }
         }
-//        MainActivity.spec = multiplyByMatrix(MainActivity.spec, transposeMatrx(fbank));
+//        MainActivity.spec = multiplyByMatrix(transposeMatrix(MainActivity.spec), transposeMatrix(fbank));
+        MainActivity.spec1 = multiplyByMatrix(transposeMatrix(MainActivity.spec1), transposeMatrix(fbank));
+
+
 
 //        filter_banks = numpy.where(filter_banks == 0, numpy.finfo(float).eps, filter_banks)  # Numerical Stability
 //        filter_banks = 20 * numpy.log10(filter_banks)  # dB
-        for (int i = 0; i < MainActivity.spec.length; i++) {
-            for (int j = 0; j < MainActivity.spec[0].length; j++) {
-                MainActivity.spec[i][j] = (float)(20 * Math.log10((double)MainActivity.spec[i][j]));
+
+        for (int i = 0; i < MainActivity.spec1.length; i++) {
+            for (int j = 0; j < MainActivity.spec1[0].length; j++) {
+                if (MainActivity.spec1[i][j] == 0) {
+                    MainActivity.spec1[i][j] = 2.22e-16;
+                }
+                MainActivity.spec1[i][j] = 20 * Math.log10(MainActivity.spec1[i][j]);
+            }
+        }
+
+        double [][] doubleFbank = forwardDCT(MainActivity.spec1);
+
+
+        for (int i = 0; i < MainActivity.spec1.length; i++) {
+            for (int j = 0; j < MainActivity.spec1[0].length; j++) {
+                MainActivity.spec1[i][j] = (float)(20 * Math.log10((double)MainActivity.spec1[i][j]));
             }
         }
 
     }
 
-    public static float[][] multiplyByMatrix(float[][] matrix1, float[][] matrix2) {
+    /*
+
+    Rewrite TODO
+
+    */
+    public final double[][] initCoefficients(double[][] c)
+    {
+        final int N = c.length;
+        final double value = 1/Math.sqrt(2.0);
+
+        for (int i=1; i<N; i++)
+        {
+            for (int j=1; j<N; j++)
+            {
+                c[i][j]=1;
+            }
+        }
+
+        for (int i=0; i<N; i++)
+        {
+            c[i][0] = value;
+            c[0][i] = value;
+        }
+        c[0][0] = 0.5;
+        return c;
+    }
+
+    /*
+
+    Rewrite TODO
+
+    */
+    public final double[][] forwardDCT(double[][] input)
+    {
+        final int N = input.length;
+        final double mathPI = Math.PI;
+        final int halfN = N/2;
+        final double doubN = 2.0*N;
+
+        double[][] c = new double[N][N];
+        c = initCoefficients(c);
+
+        double[][] output = new double[N][N];
+
+        for (int u=0; u<N; u++)
+        {
+            double temp_u = u*mathPI;
+            for (int v=0; v<N; v++)
+            {
+                double temp_v = v*mathPI;
+                double sum = 0.0;
+                for (int x=0; x<N; x++)
+                {
+                    int temp_x = 2*x+1;
+                    for (int y=0; y<N; y++)
+                    {
+                        sum += input[x][y] * Math.cos((temp_x/doubN)*temp_u) * Math.cos(((2*y+1)/doubN)*temp_v);
+                    }
+                }
+                sum *= c[u][v]/ halfN;
+                output[u][v] = sum;
+            }
+        }
+        return output;
+    }
+
+
+    public static double[][] multiplyByMatrix(double[][] matrix1, double[][] matrix2) {
         int m1ColLength = matrix1[0].length; // m1 columns length
         int m2RowLength = matrix2.length;    // m2 rows length
         if(m1ColLength != m2RowLength) return null; // matrix multiplication is not possible
         int mRRowLength = matrix1.length;    // m result rows length
         int mRColLength = matrix2[0].length; // m result columns length
-        float[][] mResult = new float[mRRowLength][mRColLength];
+        double[][] mResult = new double[mRRowLength][mRColLength];
         for(int i = 0; i < mRRowLength; i++) {         // rows from m1
             for(int j = 0; j < mRColLength; j++) {     // columns from m2
                 for(int k = 0; k < m1ColLength; k++) { // columns from m1
@@ -249,8 +337,8 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         return mResult;
     }
 
-    public static float[][] transposeMatrx (float[][] matrix) {
-        float[][] result = new float[matrix[0].length][matrix.length];
+    public static double[][] transposeMatrix (double[][] matrix) {
+        double[][] result = new double[matrix[0].length][matrix.length];
         if (matrix.length > 0) {
             for (int i = 0; i < matrix[0].length; i++) {
                 for (int j = 0; j < matrix.length; j++) {
@@ -287,10 +375,10 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
      * @param nsegs
      * @return
      */
-    public static float minmaxspec(float[][] spec, int seglen, int nsegs) {
+    public static double minmaxspec(double[][] spec, int seglen, int nsegs) {
 
-        MainActivity.smin = (float) 1e35;
-        MainActivity.smax = (float) -1e35;
+        MainActivity.smin = (double) 1e35;
+        MainActivity.smax = (double) -1e35;
         for (int j=1; j<nsegs; j++) {
             for (int i = 0;i<seglen;i++){
 
