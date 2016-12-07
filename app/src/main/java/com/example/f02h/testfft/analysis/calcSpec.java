@@ -3,8 +3,11 @@ package com.example.f02h.testfft.analysis;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.example.f02h.testfft.MainActivity;
+
+import java.util.Arrays;
 
 /**
  * Created by f02h on 3. 12. 2016.
@@ -180,7 +183,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
                 MainActivity.spec[(MainActivity.seg_len-1)-i][j] = MainActivity.logmag[i];
                 MainActivity.spec1[(MainActivity.seg_len-1)-i][j] = (1.0/512)*(MainActivity.magTmp[i] * MainActivity.magTmp[1]); // TODO research
 
-                //Log.d("SpecGram","log= "+logmag[i]);
+//                Log.d("SpecGram","log= "+logmag[i]);
             }
         }
         minmaxspec(MainActivity.spec,MainActivity.seg_len,(int)nsegs);
@@ -241,15 +244,17 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
                 MainActivity.spec1[i][j] = 20 * Math.log10(MainActivity.spec1[i][j]);
             }
         }
+        double [] test = dct(MainActivity.spec1[0]);
 
-        double [][] doubleFbank = forwardDCT(MainActivity.spec1);
+        double a = 0.0;
+//        double [][] doubleFbank = forwardDCT(MainActivity.spec1);
 
 
-        for (int i = 0; i < MainActivity.spec1.length; i++) {
-            for (int j = 0; j < MainActivity.spec1[0].length; j++) {
-                MainActivity.spec1[i][j] = (float)(20 * Math.log10((double)MainActivity.spec1[i][j]));
-            }
-        }
+//        for (int i = 0; i < MainActivity.spec1.length; i++) {
+//            for (int j = 0; j < MainActivity.spec1[0].length; j++) {
+//                MainActivity.spec1[i][j] = (float)(20 * Math.log10((double)MainActivity.spec1[i][j]));
+//            }
+//        }
 
     }
 
@@ -287,7 +292,11 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
     */
     public final double[][] forwardDCT(double[][] input)
     {
+
+
         final int N = input.length;
+        double [][] tmpInput = new double[N][N];
+
         final double mathPI = Math.PI;
         final int halfN = N/2;
         final double doubN = 2.0*N;
@@ -319,6 +328,43 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         return output;
     }
 
+    public static void dct2d (double[][] input) {
+        int width = input.length;
+        int height = input[0].length;
+
+        double [][] tmp = new double[width][height];
+        for (int i = 0; i < width; i++) {
+            tmp[i] = dct(input[i]);
+        }
+    }
+
+    public static double[] dct (double[] input)
+    {
+        final int N = input.length;
+        double half = Math.sqrt(1.0/(2*N));
+        double quad = Math.sqrt(1.0/(4*N));
+        double[] result = new double[N];
+        for (int k = 0; k < N ; k++) {
+            double sum = 0.0;
+            for (int n= 0; n < N; n++) {
+                sum += input[n] * Math.cos(Math.PI * (double) k * (2*(double)n+1)/(2*N));
+            }
+
+            if (k == 0) {
+                result[k] = 2 * sum;
+            } else {
+                result[k] = 2 * sum;
+            }
+
+//            if (k == 0) {
+//                result[k] = 2 * sum * quad;
+//            } else {
+//                result[k] = 2 * sum * half;
+//            }
+        }
+
+        return result;
+    }
 
     public static double[][] multiplyByMatrix(double[][] matrix1, double[][] matrix2) {
         int m1ColLength = matrix1[0].length; // m1 columns length
