@@ -244,7 +244,28 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
                 MainActivity.spec1[i][j] = 20 * Math.log10(MainActivity.spec1[i][j]);
             }
         }
+//        Log.d("SpecGram",Arrays.toString(MainActivity.spec1[1]));
         double [] test = dct(MainActivity.spec1[0]);
+        double [][] test2dct = dct2d(MainActivity.spec1);
+        double [][] mfcc = new double[test2dct.length][12];
+        for (int i = 0; i < test2dct.length; i++) {
+            for (int j = 1; j < 12+1; j++) {
+                mfcc[i][j-1] = test2dct[i][j];
+            }
+        }
+
+
+        double [][] deltas = new double[mfcc.length][mfcc[0].length];
+
+        for (int i = 0; i < mfcc.length; i++) {
+            deltas[i] = delta(mfcc[i], 2);
+        }
+
+        double [][] deltasdeltas = new double[deltas.length][deltas[0].length];
+
+        for (int i = 0; i < deltas.length; i++) {
+            deltasdeltas[i] = delta(deltas[i], 2);
+        }
 
         double a = 0.0;
 //        double [][] doubleFbank = forwardDCT(MainActivity.spec1);
@@ -258,84 +279,72 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
 
     }
 
-    /*
-
-    Rewrite TODO
-
-    */
-    public final double[][] initCoefficients(double[][] c)
-    {
-        final int N = c.length;
-        final double value = 1/Math.sqrt(2.0);
-
-        for (int i=1; i<N; i++)
-        {
-            for (int j=1; j<N; j++)
-            {
-                c[i][j]=1;
-            }
-        }
-
-        for (int i=0; i<N; i++)
-        {
-            c[i][0] = value;
-            c[0][i] = value;
-        }
-        c[0][0] = 0.5;
-        return c;
-    }
-
-    /*
-
-    Rewrite TODO
-
-    */
-    public final double[][] forwardDCT(double[][] input)
-    {
-
-
-        final int N = input.length;
-        double [][] tmpInput = new double[N][N];
-
-        final double mathPI = Math.PI;
-        final int halfN = N/2;
-        final double doubN = 2.0*N;
-
-        double[][] c = new double[N][N];
-        c = initCoefficients(c);
-
-        double[][] output = new double[N][N];
-
-        for (int u=0; u<N; u++)
-        {
-            double temp_u = u*mathPI;
-            for (int v=0; v<N; v++)
-            {
-                double temp_v = v*mathPI;
-                double sum = 0.0;
-                for (int x=0; x<N; x++)
-                {
-                    int temp_x = 2*x+1;
-                    for (int y=0; y<N; y++)
-                    {
-                        sum += input[x][y] * Math.cos((temp_x/doubN)*temp_u) * Math.cos(((2*y+1)/doubN)*temp_v);
-                    }
-                }
-                sum *= c[u][v]/ halfN;
-                output[u][v] = sum;
-            }
-        }
-        return output;
-    }
-
-    public static void dct2d (double[][] input) {
+    public static double[][] dct2d (double[][] input) {
         int width = input.length;
         int height = input[0].length;
+
 
         double [][] tmp = new double[width][height];
         for (int i = 0; i < width; i++) {
             tmp[i] = dct(input[i]);
         }
+
+//        double[][] ttmp = transposeMatrix(tmp);
+//        width = ttmp.length;
+//        for (int i = 0; i < width; i++) {
+//            ttmp[i] = dct(ttmp[i]);
+//        }
+
+//        return transposeMatrix(ttmp);
+
+        return tmp;
+    }
+
+    public static double[] delta( double[] input, int N) {
+//        "" "Compute delta features from a feature vector sequence.
+//
+//        :param feat:A numpy array of size(NUMFRAMES by number of features) containing features.
+//        Each row holds 1 feature vector.
+//        :param N:For each frame, calculate delta features based on preceding and following N frames
+//        :
+//        returns:
+//        A numpy array of size(NUMFRAMES by number of features) containing delta features.Each row
+//        holds 1 delta feature vector.
+//        "" "
+        int nbrFrames = input.length+ 2*N;
+        double[] result = new double[nbrFrames+2*N];
+
+        for (int i = 0; i < nbrFrames; i++) {
+
+            if (i == 0 || i == 1) {
+                result[i] = input[0];
+            } else if (i == nbrFrames-1 || i == nbrFrames-2) {
+                result[i] = input[input.length-1];
+            } else {
+                result[i] = input[i-2];
+            }
+        }
+
+        double denom = 0.0;
+        for (int i = 1; i < N+1; i++) {
+            denom += 2 * i * i;
+        }
+
+//        denom = sum([2 * i * i for i in range(1, N + 1)])
+        double [] deltas = new double[nbrFrames -2*N];
+
+        for (int i = 0; i < nbrFrames-2*N; i++) {
+            double sum = 0.0;
+            for (int j = -1*N ; j < N+1; j++) {
+                sum += j * result[N + i + j];
+            }
+            deltas[i] = sum / denom;
+        }
+
+//        for j in range(NUMFRAMES):
+//        dfeat.append(numpy.sum([n * feat[N + j + n] for n in range(-1 * N, N + 1)],axis = 0)/denom)
+//        return dfeat
+        return deltas;
     }
 
     public static double[] dct (double[] input)
