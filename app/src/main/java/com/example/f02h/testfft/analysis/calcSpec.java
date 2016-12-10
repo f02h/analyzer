@@ -447,7 +447,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
                double[] input = {D[i][j], D[i][j + 1], D[i + 1][j]};
                double [] result = FindSmallest(input);
                double dmax = result[0];
-               double tb = result[1];
+               double tb = result[1]+1;
                D[i+1][j+1] = D[i+1][j+1]+dmax;
                phi[i][j] = tb;
            }
@@ -480,13 +480,14 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
 
 //// Strip off the edges of the D matrix before returning
 //       D = D(2:r + 1, 2:c + 1);
-       double[][] result = new double[D.length-1][D[0].length];
-       for (int o = 1; i < r+1; o++) {
+       double[][] result = new double[D.length-1][D[0].length-1];
+       for (int o = 1; o < r+1; o++) {
            for (int u = 1; u < c+1; u++) {
-               result[o-1][u-1] = D[i][j];
+               result[o-1][u-1] = D[o][u];
            }
 
        }
+       double toReturn = result[r][c];
        int qweq = 1;
 //       result = D(r, c);
    }
