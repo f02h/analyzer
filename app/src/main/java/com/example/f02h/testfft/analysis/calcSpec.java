@@ -273,7 +273,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         double[][] B = { {3.0, 4.0} , { 1.0, 2.0} };
         double[][] testSimmx = simmx(A,B,"Cosine");
 
-        dp(subMatrix(testSimmx, 1));
+//        dp(subMatrix(testSimmx, 1));
 
         double a = 0.0;
 //        double [][] doubleFbank = forwardDCT(MainActivity.spec1);
@@ -292,15 +292,32 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
 
         int nbrOfTemplates = templates.length;
         String izpis ="";
+        List<Double> values = new ArrayList<Double>();
 
         double[][] SM_lj;
 
         for (int i = 0; i < nbrOfTemplates; i++) {
             SM_lj = simmx(unknown_template.getSpectro(), templates[i].getSpectro(), distance_f);
-
-
-//            [p_lj, q_lj, D_lj, Dtw_lj]=dp(subMatrix(SM_lj, 1.0);
+            double sim = dp(subMatrix(SM_lj, 1.0));
+            templates[i].setSimilarity(sim);
+            values.add(sim);
         }
+        double [] valuesdouble = new double[values.size()];
+
+        double sum = 0.0;
+        for (int i = 0; i < values.size(); i++) {
+            valuesdouble[i] = values.get(i);
+            sum += valuesdouble[i];
+        }
+        double [] result = FindSmallest(valuesdouble);
+        double min = result[0];
+        int pos = (int)result[1];
+        valuesdouble[pos] = 0;
+
+        double ave = sum/(nbrOfTemplates-1);
+
+        double conf = (ave-min)/ave*100;
+
 
 //        for i = 1:ntemplat,
 //                SM_lj = simmx(unknown_template(2), templates(i) (2), distance_f);
@@ -414,7 +431,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         return M;
     }
 
-   public static void dp (double[][] M) {
+   public static double dp (double[][] M) {
 
 
 
@@ -489,7 +506,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
        }
        double toReturn = result[r][c];
        int qweq = 1;
-//       result = D(r, c);
+       return toReturn;
    }
 
     public static double[] FindSmallest (double [] input){//start method
