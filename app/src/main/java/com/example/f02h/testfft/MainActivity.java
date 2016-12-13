@@ -32,6 +32,7 @@ import com.example.f02h.testfft.analysis.FFT;
 import com.example.f02h.testfft.analysis.PlayButton;
 import com.example.f02h.testfft.analysis.RecordButton;
 import com.example.f02h.testfft.analysis.FourierTransform;
+import com.example.f02h.testfft.analysis.Template;
 import com.example.f02h.testfft.analysis.WaveTools;
 import com.example.f02h.testfft.analysis.calcSpec;
 import com.jjoe64.graphview.GraphView;
@@ -40,6 +41,8 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import com.jjoe64.graphview.series.PointsGraphSeries;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 
@@ -108,27 +111,37 @@ public class MainActivity extends AppCompatActivity {
     public static double[] mel2Hz;
     public static double[] bin;
 
+    public static Template [] templates;
+    public static int templateNbr = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         MainActivity.context = getApplicationContext();
         setContentView(R.layout.activity_main);
+        // build templates
+        templates = new Template[5];
 
         spectroButton = (Button) findViewById(R.id.Spectro);
         spectroButton.setOnClickListener( new OnClickListener() {
             public void onClick(View v) {
                 Log.i("spectro button click", "******");
-                try{
-                    SetupUI();
-                    audioBuf = WaveTools.wavread("sp11.wav", MainActivity.getAppContext());
-                    String dummy = "test";
-                    new calcSpec().execute(dummy);
-                }catch(Exception e){
-                    Log.d("SpecGram2","Exception= "+e);
+                for (int i = templateNbr; i < 5; i++) {
+                    try {
+                        SetupUI();
+                        audioBuf = WaveTools.wavread("41lj.wav", MainActivity.getAppContext());
+                        String dummy = "test";
+                        new calcSpec().execute(dummy);
+                    } catch (Exception e) {
+                        Log.d("SpecGram2", "Exception= " + e);
+                    }
                 }
             }
         });
+
+        Template recorded = new Template();
+        double a = recognize_dtw(recorded, templates, "Cosine");
 
 //        final float frequency = 440; // Note A
 //        float increment = (float)(2*Math.PI) * frequency / 44100;
@@ -211,6 +224,40 @@ public class MainActivity extends AppCompatActivity {
         title.setTypeface(null, Typeface.BOLD);
 
 
+    }
+
+
+    public static double recognize_dtw(Template unknown_template,Template[] templates,String distance_f) {
+
+        int nbrOfTemplates = templates.length;
+        String izpis = "";
+        List<Double> values = new ArrayList<Double>();
+
+        double[][] SM_lj;
+
+        for (int i = 0; i < nbrOfTemplates; i++) {
+            SM_lj = calcSpec.simmx(unknown_template.getSpectro(), templates[i].getSpectro(), distance_f);
+            double sim = calcSpec.dp(calcSpec.subMatrix(SM_lj, 1.0));
+            templates[i].setSimilarity(sim);
+            values.add(sim);
+        }
+        double[] valuesdouble = new double[values.size()];
+
+        double sum = 0.0;
+        for (int i = 0; i < values.size(); i++) {
+            valuesdouble[i] = values.get(i);
+            sum += valuesdouble[i];
+        }
+        double[] result = calcSpec.FindSmallest(valuesdouble);
+        double min = result[0];
+        int pos = (int) result[1];
+        valuesdouble[pos] = 0;
+
+        double ave = sum / (nbrOfTemplates - 1);
+
+        double conf = (ave - min) / ave * 100;
+
+        return 0.0;
     }
 
     public static void setupData (float[] samples) {

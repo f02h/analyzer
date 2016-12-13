@@ -34,31 +34,8 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
     @Override
     protected void onPostExecute(String result) {
         Bitmap spectro = bitmapFromArray(MainActivity.spec);
-
-//        Bitmap spectroCopy = spectro;
-
-//        for (int j = 0; j < nsegs ; j++){
-//            for (int i = 0; i < nlen; i++) {
-//                MainActivity.left.append(Integer.toString((int) MainActivity.spec[i][j])+" ");
-//            }
-//        }
-//        int[] pixels = new int[spectroCopy.getHeight()*spectroCopy.getWidth()];
-//        int minvalue = 0;
-//        int maxvalue = 0;
-//        spectro.getPixels(pixels, 0, spectroCopy.getWidth(), 0, 0, spectroCopy.getWidth(), spectroCopy.getHeight());
-//        for (int i=0; i<spectroCopy.getWidth()*spectroCopy.getHeight(); i++) {
-////            pixels[i] = Color.rgb(scale(pixels[i],0,50,255,0),scale(pixels[i],0,50,255,100),scale(pixels[i],0,50,255,100));
-//            if (pixels[i] > maxvalue) maxvalue = pixels[i];
-//            if (pixels[i] < minvalue) minvalue = pixels[i];
-//
-//            pixels[i] =  Color.HSVToColor(getColor((double)scale(pixels[i],-50,50,0,80)));
-//
-//        }
-//        spectroCopy.setPixels(pixels, 0, spectroCopy.getWidth(), 0, 0, spectroCopy.getWidth(), spectroCopy.getHeight());
-
         MainActivity.left.setImageBitmap(spectro);
         calculateMel();
-        int test = 1;
     }
 
     public static double scale(final double valueIn, final double baseMin, final double baseMax, final double limitMin, final double limitMax) {
@@ -246,7 +223,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
                 MainActivity.spec1[i][j] = 20 * Math.log10(MainActivity.spec1[i][j]);
             }
         }
-//        Log.d("SpecGram",Arrays.toString(MainActivity.spec1[1]));
+
         double [] test = dct(MainActivity.spec1[0]);
         double [][] test2dct = dct2d(MainActivity.spec1);
         double [][] mfcc = new double[test2dct.length][12];
@@ -255,7 +232,6 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
                 mfcc[i][j-1] = test2dct[i][j];
             }
         }
-
 
         double [][] deltas = new double[mfcc.length][mfcc[0].length];
 
@@ -268,6 +244,11 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         for (int i = 0; i < deltas.length; i++) {
             deltasdeltas[i] = delta(deltas[i], 2);
         }
+
+        // TODO merge mfcc + delta + deltadelta into result
+
+        double[][] result = new double[1][39];
+        MainActivity.templates[MainActivity.templateNbr].setSpectro(result);
 
         double[][] A = { {1.0, 2.0} , { 3.0, 4.0} };
         double[][] B = { {3.0, 4.0} , { 1.0, 2.0} };
