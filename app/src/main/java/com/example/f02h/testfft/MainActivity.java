@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     public static GraphView graph;
     public static GraphView graph2;
     public static View mainView;
-    public static float [] audioBuf;
+//    public static float [] audioBuf;
 
 
     public static float[] buff;
@@ -112,7 +112,9 @@ public class MainActivity extends AppCompatActivity {
     public static double[] bin;
 
     public static Template [] templates;
-    public static int templateNbr = 0;
+    public static int templateNbr = 5;
+    String [] listTemplates = {"41j.wav", "41mb.wav", "41ce.wav", "41kp.wav","42lj.wav"};
+    public static float[][] audioSamples = new float[5][];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,18 +123,21 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.context = getApplicationContext();
         setContentView(R.layout.activity_main);
         // build templates
-        templates = new Template[5];
+        templates = new Template[templateNbr];
 
         spectroButton = (Button) findViewById(R.id.Spectro);
         spectroButton.setOnClickListener( new OnClickListener() {
             public void onClick(View v) {
                 Log.i("spectro button click", "******");
-                for (int i = templateNbr; i < 5; i++) {
+                for (int i = 0; i < templateNbr; i++) {
                     try {
                         SetupUI();
-                        audioBuf = WaveTools.wavread("41lj.wav", MainActivity.getAppContext());
+                        templates[i] = new Template();
+                        templates[i].setFilename(listTemplates[i]);
+                        templates[i].setRepresents(listTemplates[i]);
+                        audioSamples[i] = WaveTools.wavread(listTemplates[i], MainActivity.getAppContext());
                         String dummy = "test";
-                        new calcSpec().execute(dummy);
+                        new calcSpec(i).execute(dummy);
                     } catch (Exception e) {
                         Log.d("SpecGram2", "Exception= " + e);
                     }
@@ -140,8 +145,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Template recorded = new Template();
-        double a = recognize_dtw(recorded, templates, "Cosine");
+//        double a = recognize_dtw(recorded, templates, "Cosine");
 
 //        final float frequency = 440; // Note A
 //        float increment = (float)(2*Math.PI) * frequency / 44100;
@@ -179,6 +183,11 @@ public class MainActivity extends AppCompatActivity {
 //        MainActivity.setGraphs(test,test2);
 
 
+    }
+
+    public static void setup() {
+        Template recorded = new Template();
+        String a = "test";
     }
 
     private void SetupUI() {

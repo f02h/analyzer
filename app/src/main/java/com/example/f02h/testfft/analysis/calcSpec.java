@@ -19,13 +19,20 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
     int nshift = 0;// Initialise frame shift
     int nlen = 0;// Initialise frame length
     float nsegs = 0 ; //Initialise the total number of frames
+    int templateNumber;
+
+    public calcSpec(int templateNbumber) {
+        super();
+        this.templateNumber = templateNbumber;
+    }
+
     @Override
     protected String doInBackground(String... params) {
         fs = WaveTools.getFs();
         nshift = (int) Math.floor(MainActivity.tshift*fs/1000); // frame shift in samples
         nlen = (int) Math.floor(MainActivity.tlen*fs/1000);	// frame length in samples
-        nsegs = 1+(float) (Math.ceil((MainActivity.audioBuf.length-(nlen))/(nshift)));
-        specGram(MainActivity.audioBuf,nsegs,nshift,nlen);
+        nsegs = 1+(float) (Math.ceil((MainActivity.audioSamples[templateNumber].length-(nlen))/(nshift)));
+        specGram(MainActivity.audioSamples[templateNumber],nsegs,nshift,nlen);
 
         return null;
 
@@ -35,7 +42,8 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
     protected void onPostExecute(String result) {
         Bitmap spectro = bitmapFromArray(MainActivity.spec);
         MainActivity.left.setImageBitmap(spectro);
-        calculateMel();
+        calculateMfcc();
+        MainActivity.setup();
     }
 
     public static double scale(final double valueIn, final double baseMin, final double baseMax, final double limitMin, final double limitMax) {
@@ -171,7 +179,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
 
     }
 
-    private void calculateMel() {
+    private void calculateMfcc() {
         int nbrOfMelFilters = 40;
         int startMelFreq = 0;
         double endMelFreq = 2595 * Math.log10(1 + (8000 / 2.0) / 700.0);
@@ -247,16 +255,27 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
 
         // TODO merge mfcc + delta + deltadelta into result
 
-        double[][] result = new double[1][39];
-        MainActivity.templates[MainActivity.templateNbr].setSpectro(result);
+        double[][] result = new double[mfcc.length][36];
 
-        double[][] A = { {1.0, 2.0} , { 3.0, 4.0} };
-        double[][] B = { {3.0, 4.0} , { 1.0, 2.0} };
-        double[][] testSimmx = simmx(A,B,"Cosine");
+        for (int i = 0; i < mfcc.length; i++) {
+            for (int j = 0; j < 36; j++) {
+                if (0 <= j && j < 12) {
+                    result[i][j] = mfcc[i][j];
+                } else if (12 <= j && j < 24) {
+                    result[i][j] = deltas[i][j-12];
+                } else if (24 <= j && j < 36) {
+                    result[i][j] = deltasdeltas[i][j-24];
+                }
+            }
+        }
+        MainActivity.templates[templateNumber].setSpectro(result);
 
-//        dp(subMatrix(testSimmx, 1));
+//        double[][] A = { {1.0, 2.0} , { 3.0, 4.0} };
+//        double[][] B = { {3.0, 4.0} , { 1.0, 2.0} };
+//        double[][] testSimmx = simmx(A,B,"Cosine");
+//
+////        dp(subMatrix(testSimmx, 1));
 
-        double a = 0.0;
 //        double [][] doubleFbank = forwardDCT(MainActivity.spec1);
 
 
@@ -413,8 +432,6 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
     }
 
    public static double dp (double[][] M) {
-
-
 
        int r = M.length;
        int c = M[0].length;
