@@ -3,6 +3,7 @@ package com.example.f02h.testfft;
 import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.graphics.Canvas;
@@ -35,6 +36,7 @@ import com.example.f02h.testfft.analysis.FourierTransform;
 import com.example.f02h.testfft.analysis.Template;
 import com.example.f02h.testfft.analysis.WaveTools;
 import com.example.f02h.testfft.analysis.calcSpec;
+import com.example.f02h.testfft.analysis.calcSpec2;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -44,6 +46,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import android.os.Handler;
+import java.util.logging.LogRecord;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -112,8 +116,11 @@ public class MainActivity extends AppCompatActivity {
     public static double[] bin;
 
     public static Template [] templates;
+    public static List<Template> templatesList = new ArrayList<Template>();
     public static int templateNbr = 5;
-    String [] listTemplates = {"41j.wav", "41mb.wav", "41ce.wav", "41kp.wav","42lj.wav"};
+    public static int Oldworkers = 5;
+    public static int workers = 5;
+    public static String [] listTemplates = {"41lj.wav", "41mb.wav", "41ce.wav", "41kp.wav","42lj.wav"};
     public static float[][] audioSamples = new float[5][];
 
     @Override
@@ -132,12 +139,10 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0; i < templateNbr; i++) {
                     try {
                         SetupUI();
-                        templates[i] = new Template();
-                        templates[i].setFilename(listTemplates[i]);
-                        templates[i].setRepresents(listTemplates[i]);
                         audioSamples[i] = WaveTools.wavread(listTemplates[i], MainActivity.getAppContext());
                         String dummy = "test";
-                        new calcSpec(i).execute(dummy);
+
+                        new calcSpec2(i, listTemplates[i]).execute(dummy);
                     } catch (Exception e) {
                         Log.d("SpecGram2", "Exception= " + e);
                     }
@@ -181,13 +186,37 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //
 //        MainActivity.setGraphs(test,test2);
-
-
     }
 
+    public static Handler myHandler = new Handler() {
+
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0:
+                    workers --;
+                    if (workers == 0) {
+                        setup();
+                    }
+                    // calling to this function from other pleaces
+                    // The notice call method of doing things
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
     public static void setup() {
-        Template recorded = new Template();
+        for (int i = 0; i < templateNbr; i++) {
+            Log.i("Template", ""+templatesList.toString());
+        }
+
         String a = "test";
+    }
+
+    public static void writeData(int templateNumber, double[][] result) {
+        Template tmp = new Template(result, listTemplates[templateNumber]);
+        templatesList.add(tmp);
     }
 
     private void SetupUI() {
@@ -245,9 +274,9 @@ public class MainActivity extends AppCompatActivity {
         double[][] SM_lj;
 
         for (int i = 0; i < nbrOfTemplates; i++) {
-            SM_lj = calcSpec.simmx(unknown_template.getSpectro(), templates[i].getSpectro(), distance_f);
+            SM_lj = calcSpec.simmx(unknown_template.spectro, templates[i].spectro, distance_f);
             double sim = calcSpec.dp(calcSpec.subMatrix(SM_lj, 1.0));
-            templates[i].setSimilarity(sim);
+            templates[i].similarity = sim;
             values.add(sim);
         }
         double[] valuesdouble = new double[values.size()];

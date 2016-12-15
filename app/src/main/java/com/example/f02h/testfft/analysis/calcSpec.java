@@ -43,7 +43,8 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         Bitmap spectro = bitmapFromArray(MainActivity.spec);
         MainActivity.left.setImageBitmap(spectro);
         calculateMfcc();
-        MainActivity.setup();
+        MainActivity.myHandler.sendEmptyMessage(0);
+//        MainActivity.setup();
     }
 
     public static double scale(final double valueIn, final double baseMin, final double baseMax, final double limitMin, final double limitMax) {
@@ -268,7 +269,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
                 }
             }
         }
-        MainActivity.templates[templateNumber].setSpectro(result);
+        MainActivity.templates[templateNumber].spectro = result;
 
 //        double[][] A = { {1.0, 2.0} , { 3.0, 4.0} };
 //        double[][] B = { {3.0, 4.0} , { 1.0, 2.0} };
@@ -297,9 +298,9 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         double[][] SM_lj;
 
         for (int i = 0; i < nbrOfTemplates; i++) {
-            SM_lj = simmx(unknown_template.getSpectro(), templates[i].getSpectro(), distance_f);
+            SM_lj = simmx(unknown_template.spectro, templates[i].spectro, distance_f);
             double sim = dp(subMatrix(SM_lj, 1.0));
-            templates[i].setSimilarity(sim);
+            templates[i].similarity = sim;
             values.add(sim);
         }
         double [] valuesdouble = new double[values.size()];
