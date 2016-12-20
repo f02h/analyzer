@@ -359,7 +359,8 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
         double[] EB = new double[B.length];
 
 
-        double[][] tempA = transposeMatrix(A);
+//        double[][] tempA = transposeMatrix(A);
+        double[][] tempA = A;
         for (int i = 0; i < tempA.length; i++) {
             double sum = 0.0;
             for (int j = 0; j < tempA[0].length; j++) {
@@ -367,7 +368,8 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
             }
             EA[i] = Math.sqrt(sum);
         }
-        double[][] tempB = transposeMatrix(B);
+//        double[][] tempB = transposeMatrix(B);
+        double[][] tempB = B;
         for (int i = 0; i < tempB.length; i++) {
             double sum = 0.0;
             for (int j = 0; j < tempB[0].length; j++) {
@@ -392,9 +394,9 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
             }
         }
 //        M = (A'*B) ./(EA'*EB);
-
-        double [][] tempM = multiplyByMatrix(transposeMatrix(A), B);
         double [][] tempEAB = multiplyByMatrix(EA,EB);
+        double [][] tempM = multiplyByMatrix(A, transposeMatrix(B));
+
         for (int i = 0; i < ncA; i++) {
             for (int j = 0; j < ncB; j++) {
                 if (Distance == "Cosine") {
@@ -503,8 +505,7 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
            }
 
        }
-       double toReturn = result[r][c];
-       int qweq = 1;
+       double toReturn = result[r-1][c-1];
        return toReturn;
    }
 
@@ -649,9 +650,6 @@ public class calcSpec extends AsyncTask<String, Integer, String> {
     }
 
     public static double[][] multiplyByMatrix(double[] matrix1, double[] matrix2) {
-        int m1ColLength = matrix1.length; // m1 columns length
-        int m2RowLength = matrix2.length;    // m2 rows length
-        if(m1ColLength != m2RowLength) return null; // matrix multiplication is not possible
         int mRRowLength = matrix1.length;    // m result rows length
         int mRColLength = matrix2.length; // m result columns length
         double[][] mResult = new double[mRRowLength][mRColLength];

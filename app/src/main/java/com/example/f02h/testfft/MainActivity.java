@@ -211,6 +211,8 @@ public class MainActivity extends AppCompatActivity {
             Log.i("Template", ""+templatesList.toString());
         }
 
+        double result;
+        result = recognize_dtw(templatesList.get(4), templatesList, "Cosine");
         String a = "test";
     }
 
@@ -265,18 +267,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public static double recognize_dtw(Template unknown_template,Template[] templates,String distance_f) {
-
-        int nbrOfTemplates = templates.length;
+    public static double recognize_dtw(Template unknown_template,List<Template> templates,String distance_f) {
+        String a = "test";
+        int nbrOfTemplates = templates.size()-1;
         String izpis = "";
         List<Double> values = new ArrayList<Double>();
 
         double[][] SM_lj;
 
         for (int i = 0; i < nbrOfTemplates; i++) {
-            SM_lj = calcSpec.simmx(unknown_template.spectro, templates[i].spectro, distance_f);
+            SM_lj = calcSpec.simmx(unknown_template.spectro, templates.get(i).spectro, distance_f);
             double sim = calcSpec.dp(calcSpec.subMatrix(SM_lj, 1.0));
-            templates[i].similarity = sim;
+            templates.get(i).similarity = sim;
             values.add(sim);
         }
         double[] valuesdouble = new double[values.size()];
