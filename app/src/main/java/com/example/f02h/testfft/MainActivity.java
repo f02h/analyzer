@@ -1,6 +1,7 @@
 package com.example.f02h.testfft;
 
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Message;
@@ -74,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     public static float[] buff_audio;
     public static float[] new_sig;
     public static ImageView left;
+    public static ImageView left2;
     public static TextView right;
     public static TextView title;
     public static int tshift = 4; //frame shift in ms
@@ -120,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
     public static int templateNbr = 5;
     public static int Oldworkers = 5;
     public static int workers = 5;
-    public static String [] listTemplates = {"41lj.wav", "41mb.wav", "41ce.wav", "41kp.wav","42lj.wav"};
+    public static String [] listTemplates = {"41mb.wav","41lj.wav", "41ce.wav", "41kp.wav","42lj.wav"};
     public static float[][] audioSamples = new float[5][];
 
     @Override
@@ -131,14 +133,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         // build templates
         templates = new Template[templateNbr];
-
+        left = (ImageView) findViewById(R.id.imageView);
+        left2 = (ImageView) findViewById(R.id.imageView2);
         spectroButton = (Button) findViewById(R.id.Spectro);
         spectroButton.setOnClickListener( new OnClickListener() {
             public void onClick(View v) {
                 Log.i("spectro button click", "******");
                 for (int i = 0; i < templateNbr; i++) {
                     try {
-                        SetupUI();
+//                        SetupUI();
                         audioSamples[i] = WaveTools.wavread(listTemplates[i], MainActivity.getAppContext());
                         String dummy = "test";
 
@@ -216,8 +219,8 @@ public class MainActivity extends AppCompatActivity {
         String a = "test";
     }
 
-    public static void writeData(int templateNumber, double[][] result) {
-        Template tmp = new Template(result, listTemplates[templateNumber]);
+    public static void writeData(int templateNumber, double[][] result, double[][] spec) {
+        Template tmp = new Template(result, listTemplates[templateNumber], spec);
         templatesList.add(tmp);
     }
 
@@ -296,6 +299,11 @@ public class MainActivity extends AppCompatActivity {
         double ave = sum / (nbrOfTemplates - 1);
 
         double conf = (ave - min) / ave * 100;
+
+        Bitmap spectro = calcSpec2.bitmapFromArray(unknown_template.realSpectro);
+        MainActivity.left.setImageBitmap(spectro);
+        Bitmap spectro2 = calcSpec2.bitmapFromArray(templates.get(pos).realSpectro);
+        MainActivity.left2.setImageBitmap(spectro2);
 
         return 0.0;
     }
