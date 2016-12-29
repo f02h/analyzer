@@ -376,12 +376,10 @@ public class calcSpec2 extends AsyncTask<String, Integer, String> {
     }
 
     public static double[][] simmx(double[][] A,double[][] B,String Distance) {
-//pause;
         double[] EA = new double[A.length];
         double[] EB = new double[B.length];
 
-
-        double[][] tempA = transposeMatrix(A);
+        double[][] tempA = A;
         for (int i = 0; i < tempA.length; i++) {
             double sum = 0.0;
             for (int j = 0; j < tempA[0].length; j++) {
@@ -389,7 +387,7 @@ public class calcSpec2 extends AsyncTask<String, Integer, String> {
             }
             EA[i] = Math.sqrt(sum);
         }
-        double[][] tempB = transposeMatrix(B);
+        double[][] tempB = B;
         for (int i = 0; i < tempB.length; i++) {
             double sum = 0.0;
             for (int j = 0; j < tempB[0].length; j++) {
@@ -397,138 +395,102 @@ public class calcSpec2 extends AsyncTask<String, Integer, String> {
             }
             EB[i] = Math.sqrt(sum);
         }
-//        EA = sqrt(sum(A. ^ 2, 1));
-//        EB = sqrt(sum(B. ^ 2, 1));
-
 
         int ncA = A.length;
         int ncB = B.length;
-//        ncA = size(A, 2);
-//        ncB = size(B, 2);
 
         double[][] M = new double[ncA][ncB];
-//        M = zeros(ncA, ncB);
         for (int i = 0; i < ncA; i++) {
             for (int j = 0; j < ncB; j++) {
                 M[i][j] = 0.0;
             }
         }
-//        M = (A'*B) ./(EA'*EB);
-
-        double [][] tempM = multiplyByMatrix(transposeMatrix(A), B);
         double [][] tempEAB = multiplyByMatrix(EA,EB);
+        double [][] tempM = multiplyByMatrix(A, transposeMatrix(B));
+
         for (int i = 0; i < ncA; i++) {
             for (int j = 0; j < ncB; j++) {
                 if (Distance == "Cosine") {
                     M[i][j] = tempM[i][j] / tempEAB[i][j];
                 } else if (Distance == "Euclidean") {
-
                 } else if (Distance == "Chebyshev") {
-
                 }
             }
         }
-
-//        for i = 1:ncA
-//        for j = 1:ncB
-//        if Distance == 'Cosine' then
-//                // normalized inner product i.e. cos(angle between vectors)
-//                //	M(i,j) = (A(:,i)'*B(:,j))/(EA(i)*EB(j));
-//                // this is easier and probably faster
-//                M = (A '*B) ./(EA' * EB);
-//        elseif Distance=='Euclidean' then
-////    M(i,j) =sqrt(sum((A(:,i)-B(:,j)).^2))/sqrt(sum((A(:,i)).^2));
-//        M(i, j) = sqrt(sum((A(:,i)-B(:,j)).^2));
-//        elseif Distance=='Chebyshev' then
-//        M(i, j) = max(abs(A(:,i)-B(:,j)));
-//        end;
-//        end
-//                end
-//
-////Normalize and reverse if measure is error and not similarity as Cosine is
-//        if (Distance == 'Euclidean') then
-//                M = 1 - (M / max(M));
-//        elseif(Distance == 'Chebyshev') then
-//                M = 1 - (M / max(M));
-//        end;
         return M;
     }
 
-   public static double dp (double[][] M) {
+    public static double dp (double[][] M) {
 
-       int r = M.length;
-       int c = M[0].length;
+        int r = M.length;
+        int c = M[0].length;
 //// costs
-       double[][] D = new double[r+1][c+1];
+        double[][] D = new double[r+1][c+1];
 
-       for (int i = 0; i < r + 1; i++) {
-           if (i == 0) {
-               for (int j = 0; j < c + 1; j++) {
-                   D[i][j] = Double.POSITIVE_INFINITY;
-               }
-           }
-           D[i][0] = Double.POSITIVE_INFINITY;
-       }
+        for (int i = 0; i < r + 1; i++) {
+            if (i == 0) {
+                for (int j = 0; j < c + 1; j++) {
+                    D[i][j] = Double.POSITIVE_INFINITY;
+                }
+            }
+            D[i][0] = Double.POSITIVE_INFINITY;
+        }
 
-       D[0][0] = 0;
-       for (int i = 1; i < r+1; i++ ) {
-           for (int j = 1; j < c+1; j++) {
-               D[i][j] = M[i-1][j-1];
-           }
-       }
+        D[0][0] = 0;
+        for (int i = 1; i < r+1; i++ ) {
+            for (int j = 1; j < c+1; j++) {
+                D[i][j] = M[i-1][j-1];
+            }
+        }
 
-       double[][] phi = new double[r][c];
+        double[][] phi = new double[r][c];
 
 //// traceback
-       for (int i = 0; i < r; i++) {
-           for (int j = 0; j < c; j++) {
-               double[] input = {D[i][j], D[i][j + 1], D[i + 1][j]};
-               double [] result = FindSmallest(input);
-               double dmax = result[0];
-               double tb = result[1]+1;
-               D[i+1][j+1] = D[i+1][j+1]+dmax;
-               phi[i][j] = tb;
-           }
-       }
+        for (int i = 0; i < r; i++) {
+            for (int j = 0; j < c; j++) {
+                double[] input = {D[i][j], D[i][j + 1], D[i + 1][j]};
+                double [] result = FindSmallest(input);
+                double dmax = result[0];
+                double tb = result[1]+1;
+                D[i+1][j+1] = D[i+1][j+1]+dmax;
+                phi[i][j] = tb;
+            }
+        }
 
 //// Traceback from top left
-       int i = r;
-       int j = c;
-       double startp = i;
-       double startq = j;
-       List<Double> p = new ArrayList<Double>();
-       p.add((double)i);
-       List<Double> q = new ArrayList<Double>();
-       q.add((double)j);
+        int i = r;
+        int j = c;
+        double startp = i;
+        double startq = j;
+        List<Double> p = new ArrayList<Double>();
+        p.add((double)i);
+        List<Double> q = new ArrayList<Double>();
+        q.add((double)j);
 
-       while ((i > 1) && j > 1) {
-           double tb = phi[i-1][j-1];
-           if (tb == 1) {
-               i = i-1;
-               j = j-1;
-           } else if (tb == 2) {
-               i = i-1;
-           } else if (tb == 3) {
-               j = j-1;
-           }
+        while ((i > 1) && j > 1) {
+            double tb = phi[i-1][j-1];
+            if (tb == 1) {
+                i = i-1;
+                j = j-1;
+            } else if (tb == 2) {
+                i = i-1;
+            } else if (tb == 3) {
+                j = j-1;
+            }
 
-           p.add((double)i);
-           q.add((double)j);
-       }
+            p.add((double)i);
+            q.add((double)j);
+        }
 
-//// Strip off the edges of the D matrix before returning
-//       D = D(2:r + 1, 2:c + 1);
-       double[][] result = new double[D.length-1][D[0].length-1];
-       for (int o = 1; o < r+1; o++) {
-           for (int u = 1; u < c+1; u++) {
-               result[o-1][u-1] = D[o][u];
-           }
-
-       }
-       double toReturn = result[r][c];
-       int qweq = 1;
-       return toReturn;
-   }
+        double[][] result = new double[D.length-1][D[0].length-1];
+        for (int o = 1; o < r+1; o++) {
+            for (int u = 1; u < c+1; u++) {
+                result[o-1][u-1] = D[o][u];
+            }
+        }
+        double toReturn = result[r-1][c-1];
+        return toReturn;
+    }
 
     public static double[] FindSmallest (double [] input){//start method
 
@@ -671,9 +633,6 @@ public class calcSpec2 extends AsyncTask<String, Integer, String> {
     }
 
     public static double[][] multiplyByMatrix(double[] matrix1, double[] matrix2) {
-        int m1ColLength = matrix1.length; // m1 columns length
-        int m2RowLength = matrix2.length;    // m2 rows length
-        if(m1ColLength != m2RowLength) return null; // matrix multiplication is not possible
         int mRRowLength = matrix1.length;    // m result rows length
         int mRColLength = matrix2.length; // m result columns length
         double[][] mResult = new double[mRRowLength][mRColLength];

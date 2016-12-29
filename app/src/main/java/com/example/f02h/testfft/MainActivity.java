@@ -36,7 +36,7 @@ import com.example.f02h.testfft.analysis.RecordButton;
 import com.example.f02h.testfft.analysis.FourierTransform;
 import com.example.f02h.testfft.analysis.Template;
 import com.example.f02h.testfft.analysis.WaveTools;
-import com.example.f02h.testfft.analysis.calcSpec;
+//import com.example.f02h.testfft.analysis.calcSpec;
 import com.example.f02h.testfft.analysis.calcSpec2;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
@@ -82,45 +82,44 @@ public class MainActivity extends AppCompatActivity {
     public static int tlen = 32; //frame length in ms
     static String inputPath;
 
-    public static float[] array_hat = null;
-    public static float[] res=null;
-    public static float[] fmag = null;
-    public static float[] flogmag = null;
-    public static float[] fft_cpx,tmpr,tmpi;
-    public static float[] mod_spec =null;
-    public static float[] real_mod = null;
-    public static float[] imag_mod = null;
-    public static double[] real =null;
-    public static double[] imag= null;
-    public static double[] mag =null;
-    public static double[] magTmp =null;
-    public static double[] phase = null;
-    public static double[] logmag = null;
-    public static float [][] framed;
-    public static int n, seg_len,n_shift;
-    public static float n_segs;
-    public static float [] time_array;
-    public static float [] array;
-    public static float [] wn;
-    public static double[] nmag;
-    public static double [][] spec;
-    public static double [][] spec1;
-    public static float [] array2;
-    public static float max;
-    public static float min;
-    public static double smax;
-    public static double smin;
-    public static float mux;
-    public static float smux;
-
-    public static double[] melFilters;
-    public static double[] mel2Hz;
-    public static double[] bin;
+//    public static float[] array_hat = null;
+//    public static float[] res=null;
+//    public static float[] fmag = null;
+//    public static float[] flogmag = null;
+//    public static float[] fft_cpx,tmpr,tmpi;
+//    public static float[] mod_spec =null;
+//    public static float[] real_mod = null;
+//    public static float[] imag_mod = null;
+//    public static double[] real =null;
+//    public static double[] imag= null;
+//    public static double[] mag =null;
+//    public static double[] magTmp =null;
+//    public static double[] phase = null;
+//    public static double[] logmag = null;
+//    public static float [][] framed;
+//    public static int n, seg_len,n_shift;
+//    public static float n_segs;
+//    public static float [] time_array;
+//    public static float [] array;
+//    public static float [] wn;
+//    public static double[] nmag;
+//    public static double [][] spec;
+//    public static double [][] spec1;
+//    public static float [] array2;
+//    public static float max;
+//    public static float min;
+//    public static double smax;
+//    public static double smin;
+//    public static float mux;
+//    public static float smux;
+//
+//    public static double[] melFilters;
+//    public static double[] mel2Hz;
+//    public static double[] bin;
 
     public static Template [] templates;
     public static List<Template> templatesList = new ArrayList<Template>();
     public static int templateNbr = 5;
-    public static int Oldworkers = 5;
     public static int workers = 5;
     public static String [] listTemplates = {"41mb.wav","41lj.wav", "41ce.wav", "41kp.wav","42lj.wav"};
     public static float[][] audioSamples = new float[5][];
@@ -279,8 +278,8 @@ public class MainActivity extends AppCompatActivity {
         double[][] SM_lj;
 
         for (int i = 0; i < nbrOfTemplates; i++) {
-            SM_lj = calcSpec.simmx(unknown_template.spectro, templates.get(i).spectro, distance_f);
-            double sim = calcSpec.dp(calcSpec.subMatrix(SM_lj, 1.0));
+            SM_lj = calcSpec2.simmx(unknown_template.spectro, templates.get(i).spectro, distance_f);
+            double sim = calcSpec2.dp(calcSpec2.subMatrix(SM_lj, 1.0));
             templates.get(i).similarity = sim;
             values.add(sim);
         }
@@ -291,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
             valuesdouble[i] = values.get(i);
             sum += valuesdouble[i];
         }
-        double[] result = calcSpec.FindSmallest(valuesdouble);
+        double[] result = calcSpec2.FindSmallest(valuesdouble);
         double min = result[0];
         int pos = (int) result[1];
         valuesdouble[pos] = 0;
