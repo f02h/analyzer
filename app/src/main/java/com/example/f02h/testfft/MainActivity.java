@@ -151,43 +151,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-//        double a = recognize_dtw(recorded, templates, "Cosine");
-
-//        final float frequency = 440; // Note A
-//        float increment = (float)(2*Math.PI) * frequency / 44100;
-//        float angle = 0;
-//        float samples[] = new float[1024];
-//        FFT fft = new FFT( 1024, 44100 );
-//
-//
-//        graph = (GraphView) findViewById(R.id.graph);
-//        graph2 = (GraphView) findViewById(R.id.graph2);
-//
-////        mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
-////        mFileName += "/audiorecordtest.3gp";
-//
-//        Random rand = new Random();
-//        for( int i = 0; i < samples.length; i++ )
-//        {
-//            samples[i] = (float)Math.sin( angle ) + rand.nextInt(10)+1;
-//            angle += increment;
-//        }
-//
-//        fft.forward( samples );
-//        float[] testSpectrum = fft.getSpectrum();
-//        DataPoint[] test = new DataPoint[testSpectrum.length];
-//        DataPoint[] test2 = new DataPoint[samples.length];
-//        for( int i = 0; i < testSpectrum.length; i++ )
-//        {
-//            test[i] = new DataPoint(i,testSpectrum[i]);
-//        }
-//        for( int i = 0; i < samples.length; i++ )
-//        {
-//            test2[i] = new DataPoint(i,samples[i]);
-//        }
-//
-//        MainActivity.setGraphs(test,test2);
     }
 
     public static Handler myHandler = new Handler() {
@@ -223,50 +186,50 @@ public class MainActivity extends AppCompatActivity {
         templatesList.add(tmp);
     }
 
-    private void SetupUI() {
-        LinearLayout.LayoutParams param1 = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT,
-                (float) 1.0f);
-        LinearLayout.LayoutParams param2 = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT,
-                (float) 1.0f);
-        LinearLayout.LayoutParams param3 = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
-                (float) 0.1f);
-        LinearLayout.LayoutParams param4 = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
-                (float) 1.0f);
-
-        LinearLayout main = new LinearLayout(this);
-        LinearLayout secondary = new LinearLayout(this);
-        ScrollView scroll = new ScrollView(this);
-        title = new TextView(this);
-        left = new ImageView(this);
-
-
-        scroll.setLayoutParams(param4);
-        main.setLayoutParams(param4);
-        main.setOrientation(LinearLayout.VERTICAL);
-        secondary.setLayoutParams(param1);
-        secondary.setOrientation(LinearLayout.HORIZONTAL);
-
-        title.setLayoutParams(param3);
-        left.setLayoutParams(param2);
-
-
-        secondary.addView(left);
-        scroll.addView(secondary);
-
-        main.addView(title);
-        main.addView(scroll);
-
-        setContentView(main);
-        title.setText("FFT Spectrogram of speech example by DigiPhD");
-        title.setTextSize(12);
-        title.setTypeface(null, Typeface.BOLD);
-
-
-    }
+//    private void SetupUI() {
+//        LinearLayout.LayoutParams param1 = new LinearLayout.LayoutParams(
+//                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT,
+//                (float) 1.0f);
+//        LinearLayout.LayoutParams param2 = new LinearLayout.LayoutParams(
+//                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT,
+//                (float) 1.0f);
+//        LinearLayout.LayoutParams param3 = new LinearLayout.LayoutParams(
+//                LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
+//                (float) 0.1f);
+//        LinearLayout.LayoutParams param4 = new LinearLayout.LayoutParams(
+//                LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
+//                (float) 1.0f);
+//
+//        LinearLayout main = new LinearLayout(this);
+//        LinearLayout secondary = new LinearLayout(this);
+//        ScrollView scroll = new ScrollView(this);
+//        title = new TextView(this);
+//        left = new ImageView(this);
+//
+//
+//        scroll.setLayoutParams(param4);
+//        main.setLayoutParams(param4);
+//        main.setOrientation(LinearLayout.VERTICAL);
+//        secondary.setLayoutParams(param1);
+//        secondary.setOrientation(LinearLayout.HORIZONTAL);
+//
+//        title.setLayoutParams(param3);
+//        left.setLayoutParams(param2);
+//
+//
+//        secondary.addView(left);
+//        scroll.addView(secondary);
+//
+//        main.addView(title);
+//        main.addView(scroll);
+//
+//        setContentView(main);
+//        title.setText("FFT Spectrogram of speech example by DigiPhD");
+//        title.setTextSize(12);
+//        title.setTypeface(null, Typeface.BOLD);
+//
+//
+//    }
 
 
     public static double recognize_dtw(Template unknown_template,List<Template> templates,String distance_f) {

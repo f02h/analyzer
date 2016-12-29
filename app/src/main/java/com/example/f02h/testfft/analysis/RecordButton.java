@@ -49,7 +49,7 @@ public  class RecordButton extends Button {
     private static final String AUDIO_RECORDER_FILE_EXT_WAV = ".wav";
     private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
     private static final String AUDIO_RECORDER_TEMP_FILE = "record_temp.raw";
-    private static final int RECORDER_SAMPLERATE = 44100;
+    private static final int RECORDER_SAMPLERATE = 8000;
 
     private boolean isRecording = false;
     private int bufferSize = 0;
@@ -68,7 +68,7 @@ public  class RecordButton extends Button {
         public void onClick(View v) {
             Log.i("button click", "******");
             if (mStartRecording) {
-                mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100 ,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT,2*minBufferSize );
+                mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 8000 ,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT,2*minBufferSize );
                 setText("Stop recording");
                 thread = new Thread(new Runnable() {
                     public void run() {
@@ -121,7 +121,7 @@ public  class RecordButton extends Button {
             e1.printStackTrace();
         }
 
-        bufferSize = AudioRecord.getMinBufferSize(44100 ,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT);
+        bufferSize = AudioRecord.getMinBufferSize(8000 ,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT);
 //        float[] buffer = new float[bufferSize];
         byte buffer[] = new byte[bufferSize];
         if (mRecorder.getState() == 1) {
@@ -218,7 +218,7 @@ public  class RecordButton extends Button {
 
             dataInputStream.close();
 
-            AudioTrack track = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
+            AudioTrack track = new AudioTrack(AudioManager.STREAM_MUSIC, 8000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                     bufferSizeInBytes, AudioTrack.MODE_STREAM);
 
 //            track.play();
@@ -240,8 +240,8 @@ public  class RecordButton extends Button {
         long totalAudioLen = 0;
         long totalDataLen = totalAudioLen + 36;
         long longSampleRate = RECORDER_SAMPLERATE;
-        int channels = 2;
-        long byteRate = RECORDER_BPP * RECORDER_SAMPLERATE * channels/8;
+        int channels = 1;
+        long byteRate = (long)(RECORDER_BPP * RECORDER_SAMPLERATE * channels/8.0);
 
         int windowSize = 1024;
 
