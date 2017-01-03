@@ -12,17 +12,22 @@ import android.widget.Button;
 import com.example.f02h.testfft.MainActivity;
 import com.example.f02h.testfft.R;
 
+import java.io.File;
 import java.io.IOException;
 
 public class PlayButton extends Button {
     boolean mStartPlaying = true;
 
     private MediaPlayer   mPlayer = null;
-
+    private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
 
     OnClickListener clicker = new OnClickListener() {
         public void onClick(View v) {
-            onPlay(mStartPlaying);
+            try {
+                onPlay(mStartPlaying);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             if (mStartPlaying) {
                 setText("Stop playing");
             } else {
@@ -38,7 +43,7 @@ public class PlayButton extends Button {
         setOnClickListener(clicker);
     }
 
-    private void onPlay(boolean start) {
+    private void onPlay(boolean start) throws IOException {
         if (start) {
             startPlaying();
         } else {
@@ -46,8 +51,14 @@ public class PlayButton extends Button {
         }
     }
 
-    private void startPlaying() {
-        mPlayer = MediaPlayer.create(MainActivity.getAppContext(), R.raw.piano2);
+    private void startPlaying() throws IOException {
+        String filepath = Environment.getExternalStorageDirectory().getPath();
+        File f = new File(filepath,AUDIO_RECORDER_FOLDER);
+        File file[] = f.listFiles();
+//        mPlayer = MediaPlayer.create(MainActivity.getAppContext(), R.raw.piano2);
+        mPlayer = new MediaPlayer();
+        mPlayer.setDataSource(file[0].getPath());
+        mPlayer.prepare();
         mPlayer.start();
     }
 

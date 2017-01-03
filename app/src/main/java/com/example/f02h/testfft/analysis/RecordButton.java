@@ -173,8 +173,8 @@ public  class RecordButton extends Button {
             file.mkdirs();
         }
 
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-        MainActivity.mFileName = file.getAbsolutePath() + "/" + df.format(new Date()) + AUDIO_RECORDER_FILE_EXT_WAV;
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH");
+        MainActivity.mFileName = file.getAbsolutePath() + "/" + (System.currentTimeMillis()/1000) + AUDIO_RECORDER_FILE_EXT_WAV;
         return (MainActivity.mFileName);
     }
 
