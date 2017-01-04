@@ -44,6 +44,14 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import com.jjoe64.graphview.series.PointsGraphSeries;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -76,53 +84,24 @@ public class MainActivity extends AppCompatActivity {
     public static float[] new_sig;
     public static ImageView left;
     public static ImageView left2;
+    public static TextView textleft2;
+    public static TextView textleft;
+
     public static TextView right;
     public static TextView title;
     public static int tshift = 4; //frame shift in ms
     public static int tlen = 32; //frame length in ms
     static String inputPath;
 
-//    public static float[] array_hat = null;
-//    public static float[] res=null;
-//    public static float[] fmag = null;
-//    public static float[] flogmag = null;
-//    public static float[] fft_cpx,tmpr,tmpi;
-//    public static float[] mod_spec =null;
-//    public static float[] real_mod = null;
-//    public static float[] imag_mod = null;
-//    public static double[] real =null;
-//    public static double[] imag= null;
-//    public static double[] mag =null;
-//    public static double[] magTmp =null;
-//    public static double[] phase = null;
-//    public static double[] logmag = null;
-//    public static float [][] framed;
-//    public static int n, seg_len,n_shift;
-//    public static float n_segs;
-//    public static float [] time_array;
-//    public static float [] array;
-//    public static float [] wn;
-//    public static double[] nmag;
-//    public static double [][] spec;
-//    public static double [][] spec1;
-//    public static float [] array2;
-//    public static float max;
-//    public static float min;
-//    public static double smax;
-//    public static double smin;
-//    public static float mux;
-//    public static float smux;
-//
-//    public static double[] melFilters;
-//    public static double[] mel2Hz;
-//    public static double[] bin;
 
     public static Template [] templates;
     public static List<Template> templatesList = new ArrayList<Template>();
-    public static int templateNbr = 5;
-    public static int workers = 5;
+    public static List<Template> templatesListCache = new ArrayList<Template>();
     public static String [] listTemplates = {"41mb.wav","41lj.wav", "41ce.wav", "41kp.wav","42lj.wav"};
-    public static float[][] audioSamples = new float[5][];
+    public static int templateNbr = listTemplates.length;
+    public static int workers = templateNbr;
+//    public static String [] listTemplates = {"42lj.wav","42lj.wav", "42lj.wav", "42lj.wav","42lj.wav"};
+    public static float[][] audioSamples = new float[templateNbr][];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,19 +113,27 @@ public class MainActivity extends AppCompatActivity {
         templates = new Template[templateNbr];
         left = (ImageView) findViewById(R.id.imageView);
         left2 = (ImageView) findViewById(R.id.imageView2);
+        textleft2 = (TextView) findViewById(R.id.leftText2);
+        textleft = (TextView) findViewById(R.id.leftText);
+
         spectroButton = (Button) findViewById(R.id.Spectro);
         spectroButton.setOnClickListener( new OnClickListener() {
             public void onClick(View v) {
                 Log.i("spectro button click", "******");
-                for (int i = 0; i < templateNbr; i++) {
-                    try {
+                read();
+                if (templatesListCache.size() != 0) {
+                    setup(1);
+                } else {
+                    for (int i = 0; i < templateNbr; i++) {
+                        try {
 //                        SetupUI();
-                        audioSamples[i] = WaveTools.wavread(listTemplates[i], MainActivity.getAppContext());
-                        String dummy = "test";
+                            audioSamples[i] = WaveTools.wavread(listTemplates[i], MainActivity.getAppContext());
+                            String dummy = "test";
 
-                        new calcSpec2(i, listTemplates[i]).execute(dummy);
-                    } catch (Exception e) {
-                        Log.d("SpecGram2", "Exception= " + e);
+                            new calcSpec2(i, listTemplates[i]).execute(dummy);
+                        } catch (Exception e) {
+                            Log.d("SpecGram2", "Exception= " + e);
+                        }
                     }
                 }
             }
@@ -160,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
                 case 0:
                     workers --;
                     if (workers == 0) {
-                        setup();
+                        setup(0);
                     }
                     // calling to this function from other pleaces
                     // The notice call method of doing things
@@ -171,13 +158,22 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public static void setup() {
+    public static void setup(int useCache) {
+        if (useCache == 1) {
+            templatesList = templatesListCache;
+        }
         for (int i = 0; i < templateNbr; i++) {
             Log.i("Template", ""+templatesList.toString());
         }
 
         double result;
-        result = recognize_dtw(templatesList.get(4), templatesList, "Cosine");
+        if (useCache != 1) {
+            write();
+        }
+        Template search = templatesList.get(4);
+        templatesList.remove(4);
+        result = recognize_dtw(search, templatesList, "Cosine");
+
         String a = "test";
     }
 
@@ -234,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static double recognize_dtw(Template unknown_template,List<Template> templates,String distance_f) {
         String a = "test";
-        int nbrOfTemplates = templates.size()-1;
+        int nbrOfTemplates = templates.size();
         String izpis = "";
         List<Double> values = new ArrayList<Double>();
 
@@ -262,10 +258,12 @@ public class MainActivity extends AppCompatActivity {
 
         double conf = (ave - min) / ave * 100;
 
-        Bitmap spectro = calcSpec2.bitmapFromArray(unknown_template.realSpectro);
-        MainActivity.left.setImageBitmap(spectro);
-        Bitmap spectro2 = calcSpec2.bitmapFromArray(templates.get(pos).realSpectro);
-        MainActivity.left2.setImageBitmap(spectro2);
+//        Bitmap spectro = calcSpec2.bitmapFromArray(unknown_template.realSpectro);
+//        MainActivity.left.setImageBitmap(spectro);
+        MainActivity.textleft.setText(unknown_template.filename);
+//        Bitmap spectro2 = calcSpec2.bitmapFromArray(templates.get(pos).realSpectro);
+//        MainActivity.left2.setImageBitmap(spectro2);
+        MainActivity.textleft2.setText(templates.get(pos).filename);
 
         return 0.0;
     }
@@ -316,5 +314,46 @@ public class MainActivity extends AppCompatActivity {
         graph.addSeries(series);
         LineGraphSeries<DataPoint> series2 = new LineGraphSeries<DataPoint>(test2);
         graph2.addSeries(series2);
+    }
+
+    public static void write(){
+        Template myPersonObject = new Template();
+        myPersonObject.filename = "abc";
+        ObjectOutput out = null;
+        List<Template> templatesListClone = new ArrayList<Template>();
+        templatesListClone.addAll(templatesList);
+        for (int i = 0; i < templateNbr; i++) {
+            templatesListClone.get(i).realSpectro = new double[0][0];
+        }
+        try {
+            out = new ObjectOutputStream(new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath(),"AudioRecorder")+File.separator+"cache.srl"));
+            out.writeObject(templatesListClone);
+            out.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void read(){
+        ObjectInputStream input;
+
+        try {
+            input = new ObjectInputStream(new FileInputStream(new File(new File(Environment.getExternalStorageDirectory().getPath(),"AudioRecorder")+File.separator+"cache.srl")));
+
+            templatesListCache = (ArrayList<Template>) input.readObject();
+//            Log.v("serialization","Person a="+myPersonObject.getA());
+            input.close();
+        } catch (StreamCorruptedException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
 }

@@ -1,10 +1,12 @@
 package com.example.f02h.testfft.analysis;
 
+import java.io.Serializable;
+
 /**
  * Created by f02h on 9. 12. 2016.
  */
-public class Template {
-
+public class Template implements Serializable {
+    private static final long serialVersionUID = -29238982928391L;
     public  String filename;
 
     public  double[][] spectro;
