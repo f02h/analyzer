@@ -156,10 +156,16 @@ public  class RecordButton extends Button {
         isRecording = false;
         mRecorder.stop();
         mRecorder.release();
-
-        copyWaveFile(getTempFilename(),getFilename());
+        String filename = getFilename();
+        copyWaveFile(getTempFilename(),filename);
         deleteTempFile();
 
+        try {
+            String dummy = "calcSpec3";
+            new calcSpec3(1,filename, 0).execute(dummy);
+        } catch (Exception e) {
+            Log.d("SpecGram3", "Exception= " + e);
+        }
 
 //        MainActivity.setGraphs(test, test2);
 

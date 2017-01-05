@@ -39,10 +39,11 @@ public static float [] wavread(String path, Context mCtx) {
 			try{
 		
 					InputStream is2 = null;					
-			
-					is2 =mCtx.getAssets().open(path);
+					is2 = new FileInputStream(path);
+//					is2 =mCtx.getAssets().open(path);
+//					is2 =mCtx.open(path);
 					inFile = new DataInputStream(is2);
-			
+
 				
 
 			

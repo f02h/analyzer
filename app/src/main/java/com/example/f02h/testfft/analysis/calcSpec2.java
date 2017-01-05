@@ -52,24 +52,14 @@ public class calcSpec2 extends AsyncTask<String, Integer, String> {
         specGram(MainActivity.audioSamples[templateNumber],nsegs,nshift,nlen);
 
         calculateMfcc();
-        MainActivity.writeData(templateNumber,result,spec);
+        MainActivity.writeData(result,spec,file);
         return null;
 
     }
 
     @Override
     protected void onPostExecute(String result1) {
-//        Bitmap spectro = bitmapFromArray(spec);
-//        MainActivity.left.setImageBitmap(spectro);
-//        MainActivity.left2.setImageBitmap(spectro);
-
-
-//        calculateMfcc();
-//        MainActivity.writeData(templateNumber,result);
-//        MainActivity.templates[templateNumber].setSpectro(result);
-//        MainActivity.templates[templateNumber].setFilename(MainActivity.listTemplates[templateNumber]);
-//        MainActivity.templates[templateNumber].setRepresents(MainActivity.listTemplates[templateNumber]);
-        MainActivity.myHandler.sendEmptyMessage(0);
+        MainActivity.rebuildCacheHandler.sendEmptyMessage(0);
     }
 
     public static double scale(final double valueIn, final double baseMin, final double baseMax, final double limitMin, final double limitMax) {

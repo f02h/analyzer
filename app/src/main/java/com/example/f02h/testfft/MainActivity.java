@@ -38,6 +38,7 @@ import com.example.f02h.testfft.analysis.Template;
 import com.example.f02h.testfft.analysis.WaveTools;
 //import com.example.f02h.testfft.analysis.calcSpec;
 import com.example.f02h.testfft.analysis.calcSpec2;
+import com.example.f02h.testfft.analysis.calcSpec3;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     public static View mainView;
 //    public static float [] audioBuf;
 
-
+    private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
     public static float[] buff;
     public static float[] buff_audio;
     public static float[] new_sig;
@@ -95,11 +96,14 @@ public class MainActivity extends AppCompatActivity {
 
 
     public static Template [] templates;
+    public static Template currSearch = null;
+    public static double[][][] spectrogramView = new double[2][0][0];
     public static List<Template> templatesList = new ArrayList<Template>();
     public static List<Template> templatesListCache = new ArrayList<Template>();
     public static String [] listTemplates = {"41mb.wav","41lj.wav", "41ce.wav", "41kp.wav","42lj.wav"};
     public static int templateNbr = listTemplates.length;
     public static int workers = templateNbr;
+    public static int spectrogramViewWorkers = 2;
 //    public static String [] listTemplates = {"42lj.wav","42lj.wav", "42lj.wav", "42lj.wav","42lj.wav"};
     public static float[][] audioSamples = new float[templateNbr][];
 
@@ -117,40 +121,41 @@ public class MainActivity extends AppCompatActivity {
         textleft = (TextView) findViewById(R.id.leftText);
 
         spectroButton = (Button) findViewById(R.id.Spectro);
+
+        read();
+        if (templatesListCache.size() != 0) {
+            templatesList = templatesListCache;
+//            setup(1,0);
+            String a = "tesdt";
+        }
+
         spectroButton.setOnClickListener( new OnClickListener() {
             public void onClick(View v) {
                 Log.i("spectro button click", "******");
-                read();
-                if (templatesListCache.size() != 0) {
-                    setup(1);
-                } else {
-                    for (int i = 0; i < templateNbr; i++) {
-                        try {
-//                        SetupUI();
-                            audioSamples[i] = WaveTools.wavread(listTemplates[i], MainActivity.getAppContext());
-                            String dummy = "test";
-
-                            new calcSpec2(i, listTemplates[i]).execute(dummy);
-                        } catch (Exception e) {
-                            Log.d("SpecGram2", "Exception= " + e);
-                        }
-                    }
-                }
+                rebuildCache();
+//                for (int i = 0; i < templateNbr; i++) {
+//                    try {
+//                        audioSamples[i] = WaveTools.wavread(listTemplates[i], MainActivity.getAppContext());
+//                        String dummy = "test";
+//
+//                        new calcSpec2(i, listTemplates[i]).execute(dummy);
+//                    } catch (Exception e) {
+//                        Log.d("SpecGram2", "Exception= " + e);
+//                    }
+//                }
             }
         });
     }
 
-    public static Handler myHandler = new Handler() {
+    public static Handler rebuildCacheHandler = new Handler() {
 
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case 0:
                     workers --;
                     if (workers == 0) {
-                        setup(0);
+                        setup(0,1);
                     }
-                    // calling to this function from other pleaces
-                    // The notice call method of doing things
                     break;
                 default:
                     break;
@@ -158,74 +163,103 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public static void setup(int useCache) {
-        if (useCache == 1) {
-            templatesList = templatesListCache;
-        }
-        for (int i = 0; i < templateNbr; i++) {
-            Log.i("Template", ""+templatesList.toString());
-        }
+    public static Handler spectogramViewHandler = new Handler() {
 
-        double result;
-        if (useCache != 1) {
-            write();
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0:
+                    spectrogramViewWorkers --;
+                    if (spectrogramViewWorkers == 0) {
+                        setSpectogramView();
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
-        Template search = templatesList.get(4);
-        templatesList.remove(4);
-        result = recognize_dtw(search, templatesList, "Cosine");
+    };
 
-        String a = "test";
+    public static Handler myHandler = new Handler() {
+
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0:
+                        setup(0,0);
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
+    public static void rebuildCache() {
+        String filepath = Environment.getExternalStorageDirectory().getPath();
+        File f = new File(filepath,AUDIO_RECORDER_FOLDER);
+        File file[] = f.listFiles();
+        workers = file.length;
+        audioSamples = new float[file.length][];
+        for(int i = 0; i < file.length; i++) {
+            try {
+                audioSamples[i] = WaveTools.wavread(file[i].getPath(), MainActivity.getAppContext());
+                String dummy = "test";
+
+                new calcSpec2(i, file[i].getPath()).execute(dummy);
+            } catch (Exception e) {
+                Log.d("SpecGram2", "Exception= " + e);
+            }
+        }
     }
 
-    public static void writeData(int templateNumber, double[][] result, double[][] spec) {
-        Template tmp = new Template(result, listTemplates[templateNumber], spec);
+    public static void setup(int useCache, int rebuildCache) {
+//        if (useCache == 1) {
+//            templatesList = templatesListCache;
+//        }
+
+        String a = "a";
+        if (rebuildCache != 1) {
+            if (templatesList.size() != 0) {
+//                @TODO add notification to not recognize dtw
+                double result = recognize_dtw(currSearch, templatesList, "Cosine");
+            }
+            templatesList.add(currSearch);
+            write();
+        }
+
+        if (useCache != 1 && rebuildCache == 1) {
+            write();
+            Log.d("Rebuild cache: ","Done");
+        }
+    }
+
+    public static void writeData(double[][] result, double[][] spec, String filename) {
+        Template tmp = new Template(result, filename, spec);
         templatesList.add(tmp);
     }
 
-//    private void SetupUI() {
-//        LinearLayout.LayoutParams param1 = new LinearLayout.LayoutParams(
-//                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT,
-//                (float) 1.0f);
-//        LinearLayout.LayoutParams param2 = new LinearLayout.LayoutParams(
-//                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT,
-//                (float) 1.0f);
-//        LinearLayout.LayoutParams param3 = new LinearLayout.LayoutParams(
-//                LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
-//                (float) 0.1f);
-//        LinearLayout.LayoutParams param4 = new LinearLayout.LayoutParams(
-//                LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,
-//                (float) 1.0f);
-//
-//        LinearLayout main = new LinearLayout(this);
-//        LinearLayout secondary = new LinearLayout(this);
-//        ScrollView scroll = new ScrollView(this);
-//        title = new TextView(this);
-//        left = new ImageView(this);
-//
-//
-//        scroll.setLayoutParams(param4);
-//        main.setLayoutParams(param4);
-//        main.setOrientation(LinearLayout.VERTICAL);
-//        secondary.setLayoutParams(param1);
-//        secondary.setOrientation(LinearLayout.HORIZONTAL);
-//
-//        title.setLayoutParams(param3);
-//        left.setLayoutParams(param2);
-//
-//
-//        secondary.addView(left);
-//        scroll.addView(secondary);
-//
-//        main.addView(title);
-//        main.addView(scroll);
-//
-//        setContentView(main);
-//        title.setText("FFT Spectrogram of speech example by DigiPhD");
-//        title.setTextSize(12);
-//        title.setTypeface(null, Typeface.BOLD);
-//
-//
-//    }
+    public static void writeDataSep(double[][] result, double[][] spec, String filename) {
+        Template tmp = new Template(result, filename, spec);
+        currSearch = tmp;
+//        templatesList.add(tmp);
+    }
+
+    public static void writeDataSpectrogram(double[][] spec, String filename,int position) {
+        spectrogramView[position-1] = spec;
+    }
+
+    public static void setSpectogramView(){
+        spectrogramViewWorkers = 2;
+        for (int i = 0; i < spectrogramViewWorkers; i++) {
+            if (i == 0) {
+                Bitmap spectro = calcSpec2.bitmapFromArray(spectrogramView[i]);
+                MainActivity.left.setImageBitmap(spectro);
+
+            } else if (i == 1) {
+                Bitmap spectro2 = calcSpec2.bitmapFromArray(spectrogramView[i]);
+                MainActivity.left2.setImageBitmap(spectro2);
+
+            }
+        }
+    }
 
 
     public static double recognize_dtw(Template unknown_template,List<Template> templates,String distance_f) {
@@ -237,8 +271,8 @@ public class MainActivity extends AppCompatActivity {
         double[][] SM_lj;
 
         for (int i = 0; i < nbrOfTemplates; i++) {
-            SM_lj = calcSpec2.simmx(unknown_template.spectro, templates.get(i).spectro, distance_f);
-            double sim = calcSpec2.dp(calcSpec2.subMatrix(SM_lj, 1.0));
+            SM_lj = calcSpec3.simmx(unknown_template.spectro, templates.get(i).spectro, distance_f);
+            double sim = calcSpec3.dp(calcSpec2.subMatrix(SM_lj, 1.0));
             templates.get(i).similarity = sim;
             values.add(sim);
         }
@@ -249,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
             valuesdouble[i] = values.get(i);
             sum += valuesdouble[i];
         }
-        double[] result = calcSpec2.FindSmallest(valuesdouble);
+        double[] result = calcSpec3.FindSmallest(valuesdouble);
         double min = result[0];
         int pos = (int) result[1];
         valuesdouble[pos] = 0;
@@ -258,76 +292,24 @@ public class MainActivity extends AppCompatActivity {
 
         double conf = (ave - min) / ave * 100;
 
-//        Bitmap spectro = calcSpec2.bitmapFromArray(unknown_template.realSpectro);
-//        MainActivity.left.setImageBitmap(spectro);
+        String dummy = "upperGraph";
+        new calcSpec3(1,unknown_template.filename, 1).execute(dummy);
         MainActivity.textleft.setText(unknown_template.filename);
-//        Bitmap spectro2 = calcSpec2.bitmapFromArray(templates.get(pos).realSpectro);
-//        MainActivity.left2.setImageBitmap(spectro2);
+
+        dummy = "lowerGraph";
+        new calcSpec3(1,templates.get(pos).filename, 2).execute(dummy);
         MainActivity.textleft2.setText(templates.get(pos).filename);
+
 
         return 0.0;
     }
 
-    public static void setupData (float[] samples) {
-        // one sec 1024 samples
-        int samplePerSec = 1024;
-        int sec = (int)Math.ceil((double)samples.length / samplePerSec);
-        sec = (sec == 0) ? 1 : sec;
-
-        float[] finalSamples = new float[samplePerSec];
-        for (int i = 0; i < ((samplePerSec > samples.length) ? samples.length :samplePerSec ); i++) {
-            finalSamples[i] = samples[i];
-        }
-
-        FFT fft = new FFT( samplePerSec, 44100 );
-        fft.forward( finalSamples );
-        float[] testSpectrum = fft.getSpectrum();
-        DataPoint[] test = new DataPoint[testSpectrum.length];
-        DataPoint[] test2 = new DataPoint[finalSamples.length];
-        for( int i = 0; i < testSpectrum.length; i++ )
-        {
-            test[i] = new DataPoint(i,testSpectrum[i]);
-        }
-        for( int i = 0; i < finalSamples.length; i++ )
-        {
-            test2[i] = new DataPoint(i,finalSamples[i]);
-        }
-        graph.removeAllSeries();
-        graph2.removeAllSeries();
-        MainActivity.setGraphs(test,test2);
-    }
-
-    public static void setupDataWindowed (float[][] samples) {
-
-        for (int i = 0; i < 1; i++) {
-            DataPoint[] test2 = new DataPoint[1024];
-            for (int j = 0; j < 1024; j++) {
-                test2[j] = new DataPoint(i,samples[i][j]);
-            }
-            PointsGraphSeries<DataPoint> series = new PointsGraphSeries<DataPoint>(test2);
-            graph2.addSeries(series);
-        }
-    }
-
-    public static void setGraphs(DataPoint[] test, DataPoint[] test2) {
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(test);
-        graph.addSeries(series);
-        LineGraphSeries<DataPoint> series2 = new LineGraphSeries<DataPoint>(test2);
-        graph2.addSeries(series2);
-    }
-
     public static void write(){
-        Template myPersonObject = new Template();
-        myPersonObject.filename = "abc";
         ObjectOutput out = null;
-        List<Template> templatesListClone = new ArrayList<Template>();
-        templatesListClone.addAll(templatesList);
-        for (int i = 0; i < templateNbr; i++) {
-            templatesListClone.get(i).realSpectro = new double[0][0];
-        }
+
         try {
             out = new ObjectOutputStream(new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath(),"AudioRecorder")+File.separator+"cache.srl"));
-            out.writeObject(templatesListClone);
+            out.writeObject(templatesList);
             out.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -341,9 +323,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             input = new ObjectInputStream(new FileInputStream(new File(new File(Environment.getExternalStorageDirectory().getPath(),"AudioRecorder")+File.separator+"cache.srl")));
-
             templatesListCache = (ArrayList<Template>) input.readObject();
-//            Log.v("serialization","Person a="+myPersonObject.getA());
             input.close();
         } catch (StreamCorruptedException e) {
             e.printStackTrace();

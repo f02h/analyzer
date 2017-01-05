@@ -20,7 +20,7 @@ public class Template implements Serializable {
         this.spectro = spectro1;
         this.filename = file;
         this.represents = file;
-        this.realSpectro = spec;
+//        this.realSpectro = spec;
     }
 //
 //    public static void setFilename(String name) {
