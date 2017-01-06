@@ -1,18 +1,25 @@
 package com.example.f02h.testfft.analysis;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.media.AudioRecord;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
 import com.example.f02h.testfft.MainActivity;
 import com.example.f02h.testfft.R;
@@ -42,6 +49,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+
 public  class RecordButton extends Button {
     boolean mStartRecording = true;
     int minBufferSize = 2000;
@@ -63,6 +71,8 @@ public  class RecordButton extends Button {
     private float[][] finalAudioFloats;
 
     private AudioRecord mRecorder;
+
+    public static String currFileName = "";
 
     OnClickListener clicker = new OnClickListener() {
         public void onClick(View v) {
@@ -178,9 +188,10 @@ public  class RecordButton extends Button {
         if (!file.exists()) {
             file.mkdirs();
         }
+        getFilenameInput();
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH");
-        MainActivity.mFileName = file.getAbsolutePath() + "/" + (System.currentTimeMillis()/1000) + AUDIO_RECORDER_FILE_EXT_WAV;
+        MainActivity.mFileName = file.getAbsolutePath() + "/" + currFileName + AUDIO_RECORDER_FILE_EXT_WAV;
         return (MainActivity.mFileName);
     }
 
@@ -411,5 +422,35 @@ public  class RecordButton extends Button {
         header[43] = (byte) ((totalAudioLen >> 24) & 0xff);
 
         out.write(header, 0, 44);
+    }
+
+    public static void getFilenameInput() {
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(MainActivity.getActContext());
+        View mView = layoutInflaterAndroid.inflate(R.layout.filename_input, null);
+        AlertDialog.Builder alertDialogBuilderUserInput = new AlertDialog.Builder(MainActivity.getActContext());
+        alertDialogBuilderUserInput.setView(mView);
+
+        final Handler handler = new Handler() {
+            @Override
+            public void handleMessage(Message mesg) {
+                throw new RuntimeException();
+            }
+        };
+
+        final EditText userFilenameInput = (EditText) mView.findViewById(R.id.userInputDialog);
+        alertDialogBuilderUserInput
+                .setCancelable(false)
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogBox, int id) {
+                        currFileName = userFilenameInput.getText().toString();
+                        handler.sendMessage(handler.obtainMessage());
+                    }
+                });
+
+        AlertDialog alertDialogAndroid = alertDialogBuilderUserInput.create();
+        alertDialogAndroid.show();
+
+        try { Looper.loop(); }
+        catch(RuntimeException e2) {}
     }
 }
