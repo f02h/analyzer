@@ -1,10 +1,13 @@
 package com.example.f02h.testfft;
 
 import android.content.res.AssetManager;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Message;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
@@ -78,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
 
     private RecordButton mRecordButton = null;
     private PlayButton   mPlayButton = null;
+    public static PlayButton  mPlayButton1 = null;
+    public static PlayButton mPlayButton2 = null;
     private Button spectroButton = null;
     public static String mFileName = null;
     public static final String LOG_TAG = "AudioRecordTest";
@@ -106,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
     public static Template [] templates;
     public static Template currSearch = null;
     public static double[][][] spectrogramView = new double[2][0][0];
+    public static String[] spectrogramViewFilename = new String[2];
     public static List<Template> templatesList = new ArrayList<Template>();
     public static List<Template> templatesListCache = new ArrayList<Template>();
     public static String [] listTemplates = {"41mb.wav","41lj.wav", "41ce.wav", "41kp.wav","42lj.wav"};
@@ -114,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     public static int spectrogramViewWorkers = 2;
 //    public static String [] listTemplates = {"42lj.wav","42lj.wav", "42lj.wav", "42lj.wav","42lj.wav"};
     public static float[][] audioSamples = new float[templateNbr][];
+    public static FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,6 +133,18 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar =
                 (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4CAF50")));
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Button btn = (Button)findViewById(R.id.RecordButton);
+                btn.performClick();
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+            }
+        });
         // build templates
         templates = new Template[templateNbr];
         left = (ImageView) findViewById(R.id.imageView);
@@ -134,6 +153,8 @@ public class MainActivity extends AppCompatActivity {
         textleft = (TextView) findViewById(R.id.leftText);
 
         spectroButton = (Button) findViewById(R.id.Spectro);
+        mPlayButton1 = (PlayButton) findViewById(R.id.PlayButton1);
+        mPlayButton2 = (PlayButton) findViewById(R.id.PlayButton2);
 
         read();
         if (templatesListCache.size() != 0) {
@@ -175,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_rebuild) {
             rebuildCache();
         }
 
@@ -230,17 +251,27 @@ public class MainActivity extends AppCompatActivity {
     public static void rebuildCache() {
         String filepath = Environment.getExternalStorageDirectory().getPath();
         File f = new File(filepath,AUDIO_RECORDER_FOLDER);
-        File file[] = f.listFiles();
-        workers = file.length;
-        audioSamples = new float[file.length][];
-        for(int i = 0; i < file.length; i++) {
-            try {
-                audioSamples[i] = WaveTools.wavread(file[i].getPath(), MainActivity.getAppContext());
-                String dummy = "test";
+        File tmpfile[] = f.listFiles();
+        if (tmpfile.length != 0) {
+            File file[] = new File[tmpfile.length - 1];
+            int index = 0;
+            for (int i = 0; i < tmpfile.length; i++) {
+                if (!tmpfile[i].getName().equals("cache.srl")) {
+                    file[index] = tmpfile[i];
+                    index++;
+                }
+            }
+            workers = file.length;
+            audioSamples = new float[file.length][];
+            for (int i = 0; i < file.length; i++) {
+                try {
+                    audioSamples[i] = WaveTools.wavread(file[i].getPath(), MainActivity.getAppContext());
+                    String dummy = "test";
 
-                new calcSpec2(i, file[i].getPath()).execute(dummy);
-            } catch (Exception e) {
-                Log.d("SpecGram2", "Exception= " + e);
+                    new calcSpec2(i, file[i].getPath()).execute(dummy);
+                } catch (Exception e) {
+                    Log.d("SpecGram2", "Exception= " + e);
+                }
             }
         }
     }
@@ -262,6 +293,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (useCache != 1 && rebuildCache == 1) {
             write();
+            Snackbar.make(fab, "Rebuild cache. DONE", Snackbar.LENGTH_LONG)
+                    .setAction("Rebuild cache. DONE", null).show();
             Log.d("Rebuild cache: ","Done");
         }
     }
@@ -279,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static void writeDataSpectrogram(double[][] spec, String filename,int position) {
         spectrogramView[position-1] = spec;
+        spectrogramViewFilename[position-1] = filename;
     }
 
     public static void setSpectogramView(){
@@ -294,6 +328,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
+
+        mPlayButton1.setVisibility(View.VISIBLE);
+        mPlayButton2.setVisibility(View.VISIBLE);
     }
 
 

@@ -22,7 +22,8 @@
         android:layout_height="100px"
         android:id="@+id/RecordButton"
         android:text="RecordButton"
-        android:layout_alignParentBottom="true" />
+        android:layout_alignParentBottom="true"
+        android:visibility="gone"/>
 
     <Button
         android:layout_width="200px"
@@ -30,7 +31,8 @@
         android:id="@+id/Spectro"
         android:text="Spectro"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:visibility="gone"/>
 
     <com.example.f02h.testfft.analysis.PlayButton
         android:layout_width="200px"
@@ -38,38 +40,62 @@
         android:id="@+id/PlayButton"
         android:text="PlayButton"
         android:layout_centerHorizontal="true"
-        android:layout_alignBottom="@+id/RecordButton" />
+        android:layout_alignBottom="@+id/RecordButton"
+        android:visibility="gone"/>
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/imageView" />
+        android:id="@+id/imageView"
+        android:layout_marginTop="60dp"
+        android:layout_marginRight="60dp" />
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/imageView2"
-        android:layout_below="@+id/textView"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="120dp" />
+    <com.example.f02h.testfft.analysis.PlayButton
+        android:layout_width="40dp"
+        android:layout_height="100px"
+        android:id="@+id/PlayButton1"
+        android:text="PlayButton"
+        android:layout_toEndOf="@id/imageView"
+        android:layout_alignParentStart="false"
+        android:layout_marginTop="60dp"
+        android:visibility="gone"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:id="@+id/leftText"
-        android:layout_below="@+id/imageView2"
+        android:layout_below="@+id/imageView"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="127dp" />
+        android:layout_marginTop="5dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageView2"
+        android:layout_below="@+id/leftText"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="60dp" />
+
+    <com.example.f02h.testfft.analysis.PlayButton
+        android:layout_width="40dp"
+        android:layout_height="100px"
+        android:id="@+id/PlayButton2"
+        android:text="PlayButton"
+        android:layout_below="@+id/leftText"
+        android:layout_toEndOf="@id/imageView2"
+        android:layout_marginTop="10dp"
+        android:visibility="gone"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:id="@+id/leftText2"
-        android:layout_below="@+id/leftText"
+        android:layout_below="@+id/imageView2"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="30dp" />
+        android:layout_marginTop="5dp" />
 
 
 </RelativeLayout>

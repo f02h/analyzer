@@ -23,17 +23,53 @@ public class PlayButton extends Button {
 
     OnClickListener clicker = new OnClickListener() {
         public void onClick(View v) {
-            try {
-                onPlay(mStartPlaying);
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            switch (v.getId()) {
+
+                case R.id.PlayButton1:
+                    // do your code
+                    try {
+                        onPlay(mStartPlaying,0);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (mStartPlaying) {
+                        setText("Stop playing");
+                    } else {
+                        setText("Start playing");
+                    }
+                    mStartPlaying = !mStartPlaying;
+                    break;
+
+                case R.id.PlayButton2:
+                    // do your code
+                    try {
+                        onPlay(mStartPlaying,1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (mStartPlaying) {
+                        setText("Stop playing");
+                    } else {
+                        setText("Start playing");
+                    }
+                    mStartPlaying = !mStartPlaying;
+                    break;
+                default:
+                    break;
             }
-            if (mStartPlaying) {
-                setText("Stop playing");
-            } else {
-                setText("Start playing");
-            }
-            mStartPlaying = !mStartPlaying;
+//
+//            try {
+//                onPlay(mStartPlaying);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            if (mStartPlaying) {
+//                setText("Stop playing");
+//            } else {
+//                setText("Start playing");
+//            }
+//            mStartPlaying = !mStartPlaying;
         }
     };
 
@@ -43,21 +79,21 @@ public class PlayButton extends Button {
         setOnClickListener(clicker);
     }
 
-    private void onPlay(boolean start) throws IOException {
+    private void onPlay(boolean start, int pos) throws IOException {
         if (start) {
-            startPlaying();
+            startPlaying(pos);
         } else {
             stopPlaying();
         }
     }
 
-    private void startPlaying() throws IOException {
-        String filepath = Environment.getExternalStorageDirectory().getPath();
-        File f = new File(filepath,AUDIO_RECORDER_FOLDER);
-        File file[] = f.listFiles();
+    private void startPlaying(int pos) throws IOException {
+//        String filepath = Environment.getExternalStorageDirectory().getPath();
+//        File f = new File(filepath,AUDIO_RECORDER_FOLDER);
+//        File file[] = f.listFiles();
 //        mPlayer = MediaPlayer.create(MainActivity.getAppContext(), R.raw.piano2);
         mPlayer = new MediaPlayer();
-        mPlayer.setDataSource(file[0].getPath());
+        mPlayer.setDataSource(MainActivity.spectrogramViewFilename[pos]);
         mPlayer.prepare();
         mPlayer.start();
     }

@@ -3,6 +3,8 @@ package com.example.f02h.testfft.analysis;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -14,6 +16,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -78,6 +81,7 @@ public  class RecordButton extends Button {
         public void onClick(View v) {
             Log.i("button click", "******");
             if (mStartRecording) {
+                MainActivity.fab.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#F44336")));
                 mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 8000 ,AudioFormat.CHANNEL_IN_MONO,AudioFormat.ENCODING_PCM_16BIT,2*minBufferSize );
                 setText("Stop recording");
                 thread = new Thread(new Runnable() {
@@ -90,6 +94,7 @@ public  class RecordButton extends Button {
                 isRecording = true;
             } else {
                 stopRecording();
+                MainActivity.fab.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4CAF50")));
 //                if (finalAudioFloats != null) {
 //                    MainActivity.setupDataWindowed(finalAudioFloats);
 //                }
@@ -169,7 +174,8 @@ public  class RecordButton extends Button {
         String filename = getFilename();
         copyWaveFile(getTempFilename(),filename);
         deleteTempFile();
-
+        Snackbar.make(MainActivity.fab, "File saved. PROCESSING", Snackbar.LENGTH_LONG)
+                .setAction("File saved. PROCESSING", null).show();
         try {
             String dummy = "calcSpec3";
             new calcSpec3(1,filename, 0).execute(dummy);
