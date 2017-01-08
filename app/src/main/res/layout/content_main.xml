@@ -53,7 +53,7 @@
 
     <com.example.f02h.testfft.analysis.PlayButton
         android:layout_width="80dp"
-        android:layout_height="100px"
+        android:layout_height="50dp"
         android:id="@+id/PlayButton1"
         android:layout_alignParentStart="false"
         android:layout_alignParentRight="true"
@@ -80,7 +80,7 @@
 
     <com.example.f02h.testfft.analysis.PlayButton
         android:layout_width="80dp"
-        android:layout_height="100px"
+        android:layout_height="50dp"
         android:id="@+id/PlayButton2"
         android:layout_below="@+id/leftText"
         android:layout_alignParentStart="false"
