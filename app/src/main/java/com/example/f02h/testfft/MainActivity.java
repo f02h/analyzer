@@ -198,6 +198,8 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_rebuild) {
             rebuildCache();
+        } else if (id == R.id.action_clear) {
+            clearCache();
         }
 
         return super.onOptionsItemSelected(item);
@@ -274,6 +276,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    public static void clearCache() {
+        String filepath = Environment.getExternalStorageDirectory().getPath();
+        File f = new File(filepath,AUDIO_RECORDER_FOLDER);
+        File tmpfile[] = f.listFiles();
+        if (tmpfile.length != 0) {
+            for (int i = 0; i < tmpfile.length; i++) {
+                tmpfile[i].delete();
+            }
+
+        }
+        Snackbar.make(fab, "Clear templates. DONE", Snackbar.LENGTH_LONG)
+                .setAction("Clear templates. DONE", null).show();
     }
 
     public static void setup(int useCache, int rebuildCache) {
