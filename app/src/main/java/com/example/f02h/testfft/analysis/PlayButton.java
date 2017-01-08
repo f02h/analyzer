@@ -34,9 +34,9 @@ public class PlayButton extends Button {
                         e.printStackTrace();
                     }
                     if (mStartPlaying) {
-                        setText("Stop playing");
+                        setText("STOP");
                     } else {
-                        setText("Start playing");
+                        setText("PLAY");
                     }
                     mStartPlaying = !mStartPlaying;
                     break;
@@ -49,9 +49,9 @@ public class PlayButton extends Button {
                         e.printStackTrace();
                     }
                     if (mStartPlaying) {
-                        setText("Stop playing");
+                        setText("STOP");
                     } else {
-                        setText("Start playing");
+                        setText("PLAY");
                     }
                     mStartPlaying = !mStartPlaying;
                     break;
@@ -65,9 +65,9 @@ public class PlayButton extends Button {
 //                e.printStackTrace();
 //            }
 //            if (mStartPlaying) {
-//                setText("Stop playing");
+//                setText("STOP");
 //            } else {
-//                setText("Start playing");
+//                setText("PLAY");
 //            }
 //            mStartPlaying = !mStartPlaying;
         }
@@ -75,7 +75,7 @@ public class PlayButton extends Button {
 
     public PlayButton(Context ctx , AttributeSet attrs) {
         super(ctx,attrs);
-        setText("Start playing");
+        setText("PLAY");
         setOnClickListener(clicker);
     }
 

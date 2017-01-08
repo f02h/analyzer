@@ -446,7 +446,7 @@ public  class RecordButton extends Button {
         final EditText userFilenameInput = (EditText) mView.findViewById(R.id.userInputDialog);
         alertDialogBuilderUserInput
                 .setCancelable(false)
-                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Shrani", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialogBox, int id) {
                         currFileName = userFilenameInput.getText().toString();
                         handler.sendMessage(handler.obtainMessage());
