@@ -204,7 +204,7 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
     }
 
     private void calculateMfcc() {
-        int nbrOfMelFilters = 40;
+        int nbrOfMelFilters = 22;
         int startMelFreq = 0;
         double endMelFreq = 2595 * Math.log10(1 + (8000 / 2.0) / 700.0);
         double [] melFilters = linearScale(startMelFreq, endMelFreq, nbrOfMelFilters + 2);
@@ -218,7 +218,7 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
             bin[i] = Math.floor((512 + 1) * mel2Hz[i] / 8000);
         }
 
-        double [][] fbank = new double[40][(int)(512 / 2)];
+        double [][] fbank = new double[nbrOfMelFilters][(int)(512 / 2)];
 
         for (int i = 0; i < fbank.length; i++) {
             for (int j = 0; j < fbank[0].length; j++) {
@@ -226,7 +226,7 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
             }
         }
 
-        for (int i = 1; i < 41; i++) {
+        for (int i = 1; i < nbrOfMelFilters+1; i++) {
             int fleft = (int)bin[i-1];
             int fcenter = (int)bin[i];
             int fright = (int)bin[i+1];
@@ -240,9 +240,6 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
         }
 
         spec1 = multiplyByMatrix(transposeMatrix(spec1), transposeMatrix(fbank));
-
-//        filter_banks = numpy.where(filter_banks == 0, numpy.finfo(float).eps, filter_banks)  # Numerical Stability
-//        filter_banks = 20 * numpy.log10(filter_banks)  # dB
 
         for (int i = 0; i < spec1.length; i++) {
             for (int j = 0; j < spec1[0].length; j++) {
@@ -510,16 +507,7 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
     }
 
     public static double[] delta( double[] input, int N) {
-//        "" "Compute delta features from a feature vector sequence.
-//
-//        :param feat:A numpy array of size(NUMFRAMES by number of features) containing features.
-//        Each row holds 1 feature vector.
-//        :param N:For each frame, calculate delta features based on preceding and following N frames
-//        :
-//        returns:
-//        A numpy array of size(NUMFRAMES by number of features) containing delta features.Each row
-//        holds 1 delta feature vector.
-//        "" "
+
         int nbrFrames = input.length+ 2*N;
         double[] result = new double[nbrFrames+2*N];
 
@@ -539,7 +527,6 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
             denom += 2 * i * i;
         }
 
-//        denom = sum([2 * i * i for i in range(1, N + 1)])
         double [] deltas = new double[nbrFrames -2*N];
 
         for (int i = 0; i < nbrFrames-2*N; i++) {
@@ -550,9 +537,6 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
             deltas[i] = sum / denom;
         }
 
-//        for j in range(NUMFRAMES):
-//        dfeat.append(numpy.sum([n * feat[N + j + n] for n in range(-1 * N, N + 1)],axis = 0)/denom)
-//        return dfeat
         return deltas;
     }
 
@@ -733,26 +717,19 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
         float [][] frame = new float [seg_len][(int)n_segs];
         float padlen = (n_segs-1)*n_shift+seg_len;
 
-
         float [] wn = hamming(seg_len);
         for (int i = 0; i < n_segs;i++){
 
             for (int j = 0;j<seg_len;j++){
-
                 temp[j][i] = time_array[i*n_shift+j];//*wn[i];
-
             }
         }
         for (int i = 0; i < n_segs;i++){			// Windowing
-
             for (int j = 0;j<seg_len;j++){
-
                 frame[j][i] = temp[j][i]*wn[j];
-
             }
         }
         return frame;
-
     }
     /**
      * Calculates a hamming window to reduce
