@@ -470,6 +470,69 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
         return toReturn;
     }
 
+    public static double FastDTW(double[][] input, double[][] template)
+    {
+        int rows = input.length;
+        int columns = template.length;
+        if (rows < (double)(columns / 2) || columns < (double)(rows / 2))
+        {
+            return Double.MAX_VALUE;
+        }
+        double[][] DTW = new double[rows][columns];
+        DTW[0][0] = 0.0;
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < columns; j++)
+            {
+                double cost = distance(input[i], template[j]);
+                if (i == 0 && j == 0)
+                    DTW[i][j] = cost;
+                else if (i == 0)
+                DTW[i][j] = cost + DTW[i][j - 1];
+                else if (j == 0)
+                DTW[i][j] = cost + DTW[i - 1][j];
+                else
+                DTW[i][j] = (cost + Math.min(DTW[i - 1][j], DTW[i - 1][j - 1]));// insert ,match
+            }
+        }
+        return DTW[rows - 1][columns - 1];
+    }
+
+    public static double PrunedDTW(double[][] input, double[][] template)
+    {
+        int rows = input.length;
+        int columns = template.length;
+        if (rows < (double)(columns / 2) || columns < (double)(rows / 2))
+        {
+            return Double.MAX_VALUE;
+        }
+        double cost;
+        double[][] DTW = new double[rows+1][columns+1];
+        int w = Math.abs(columns - rows);// window length -> |rows - columns|<= w
+        for (int i = 1; i <= rows; i++)
+        {
+            for (int j = Math.max(1, i - w); j <= Math.min(columns, i + w); j++)
+            {
+                if (DTW[i - 1][j] == 0)
+                DTW[i - 1][j] = Double.MAX_VALUE;
+                if (DTW[i - 1][j - 1] == 0)
+                DTW[i - 1][j - 1] = Double.MAX_VALUE;
+                DTW[0][0] = 0;
+                cost = distance(input[i - 1], template[j - 1]);// frames 0 based
+                DTW[i][j] = (cost + Math.min(DTW[i - 1][j], DTW[i - 1][j - 1]));// insert ,match
+            }
+        }
+        return DTW[rows][columns];
+    }
+
+    public static float distance(double[] frame, double[] frame2)
+    {
+        double tempSum = 0;
+        for (int i = 0; i < frame.length; i++)
+            tempSum += Math.pow(Math.abs(frame[i] - frame2[i]), 2);
+        return (float)(Math.sqrt(tempSum)/1000);
+    }
+
     public static double[] FindSmallest (double [] input){//start method
 
         int index = 0;

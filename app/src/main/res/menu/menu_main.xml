@@ -13,4 +13,21 @@
         android:orderInCategory="100"
         android:title="Clear templates"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_render"
+        android:title="Render spectrograms"
+        android:orderInCategory="200"
+        app:showAsAction="never"
+        android:visible="true"
+        android:checkable="true"
+        android:checked="true"/>
+
+    <item
+        android:id="@+id/action_pruned"
+        android:title="Pruned DTW"
+        android:orderInCategory="201"
+        app:showAsAction="never"
+        android:visible="true"
+        android:checkable="true"
+        android:checked="true"/>
 </menu>

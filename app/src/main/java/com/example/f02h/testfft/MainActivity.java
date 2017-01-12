@@ -1,5 +1,6 @@
 package com.example.f02h.testfft;
 
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -15,12 +16,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.util.TimingLogger;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.content.Context;
 
 import android.app.Activity;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.os.Bundle;
@@ -107,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
     public static int tlen = 32; //frame length in ms
     static String inputPath;
 
-
+    public static SharedPreferences settings;
     public static Template [] templates;
     public static Template currSearch = null;
     public static double[][][] spectrogramView = new double[2][0][0];
@@ -134,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
 
+        settings = getSharedPreferences("settings", 0);
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4CAF50")));
         fab.setOnClickListener(new View.OnClickListener() {
@@ -155,6 +159,11 @@ public class MainActivity extends AppCompatActivity {
         spectroButton = (Button) findViewById(R.id.Spectro);
         mPlayButton1 = (PlayButton) findViewById(R.id.PlayButton1);
         mPlayButton2 = (PlayButton) findViewById(R.id.PlayButton2);
+
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putBoolean("render", true);
+        editor.putBoolean("pruned", true);
+        editor.commit();
 
         read();
         if (templatesListCache.size() != 0) {
@@ -200,6 +209,22 @@ public class MainActivity extends AppCompatActivity {
             rebuildCache();
         } else if (id == R.id.action_clear) {
             clearCache();
+        } else if (id == R.id.action_render) {
+            item.setChecked(!item.isChecked());
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean("render", item.isChecked());
+            if(!item.isChecked()) {
+                MainActivity.left.setVisibility(View.INVISIBLE);
+                MainActivity.left2.setVisibility(View.INVISIBLE);
+            }
+            editor.commit();
+            return true;
+        } else if (id == R.id.action_pruned) {
+            item.setChecked(!item.isChecked());
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean("pruned", item.isChecked());
+            editor.commit();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -333,25 +358,29 @@ public class MainActivity extends AppCompatActivity {
 
     public static void setSpectogramView(){
         spectrogramViewWorkers = 2;
-        for (int i = 0; i < spectrogramViewWorkers; i++) {
-            if (i == 0) {
-                Bitmap spectro = calcSpec2.bitmapFromArray(spectrogramView[i]);
-                MainActivity.left.setImageBitmap(spectro);
-
-            } else if (i == 1) {
-                Bitmap spectro2 = calcSpec2.bitmapFromArray(spectrogramView[i]);
-                MainActivity.left2.setImageBitmap(spectro2);
-
+        boolean render = settings.getBoolean("render", true);
+        if (render) {
+            for (int i = 0; i < spectrogramViewWorkers; i++) {
+                if (i == 0) {
+                    Bitmap spectro = calcSpec2.bitmapFromArray(spectrogramView[i]);
+                    MainActivity.left.setImageBitmap(spectro);
+                } else if (i == 1) {
+                    Bitmap spectro2 = calcSpec2.bitmapFromArray(spectrogramView[i]);
+                    MainActivity.left2.setImageBitmap(spectro2);
+                }
             }
+            MainActivity.left.setVisibility(View.VISIBLE);
+            MainActivity.left2.setVisibility(View.VISIBLE);
         }
-
         mPlayButton1.setVisibility(View.VISIBLE);
         mPlayButton2.setVisibility(View.VISIBLE);
     }
 
 
     public static double recognize_dtw(Template unknown_template,List<Template> templates,String distance_f) {
-        String a = "test";
+        // measure execution time
+        TimingLogger timings = new TimingLogger("STAT", "methodA");
+
         int nbrOfTemplates = templates.size();
         String izpis = "";
         List<Double> values = new ArrayList<Double>();
@@ -359,8 +388,27 @@ public class MainActivity extends AppCompatActivity {
         double[][] SM_lj;
 
         for (int i = 0; i < nbrOfTemplates; i++) {
-            SM_lj = calcSpec3.simmx(unknown_template.spectro, templates.get(i).spectro, distance_f);
-            double sim = calcSpec3.dp(calcSpec2.subMatrix(SM_lj, 1.0));
+
+            boolean fast = true;
+            boolean pruned = settings.getBoolean("pruned", true);
+//            pruned = false;
+            double sim = 0.0;
+            if (fast) {
+                if (pruned) {
+                    timings.addSplit("pre pruned");
+                    sim = calcSpec3.PrunedDTW(unknown_template.spectro, templates.get(i).spectro);
+                    timings.addSplit("post pruned");
+                } else {
+                    timings.addSplit("pre dtw");
+                    sim = calcSpec3.FastDTW(unknown_template.spectro, templates.get(i).spectro);
+                    timings.addSplit("post dtw");
+                }
+            } else {
+                SM_lj = calcSpec3.simmx(unknown_template.spectro, templates.get(i).spectro, distance_f);
+                sim = calcSpec3.dp(calcSpec2.subMatrix(SM_lj, 1.0));
+            }
+
+
             templates.get(i).similarity = sim;
             values.add(sim);
         }
@@ -379,16 +427,24 @@ public class MainActivity extends AppCompatActivity {
         double ave = sum / (nbrOfTemplates - 1);
 
         double conf = (ave - min) / ave * 100;
+        timings.addSplit("recognize");
+        File tmpFile;
+        boolean render = settings.getBoolean("render", true);
+        if (render) {
+            new calcSpec3(1, unknown_template.filename, 1).execute("upperGraph");
+        }
+        tmpFile = new File(unknown_template.filename);
+        MainActivity.textleft.setText(tmpFile.getName());
+        spectrogramViewFilename[0] = unknown_template.filename;
 
-        String dummy = "upperGraph";
-        new calcSpec3(1,unknown_template.filename, 1).execute(dummy);
-        MainActivity.textleft.setText(unknown_template.filename);
-
-        dummy = "lowerGraph";
-        new calcSpec3(1,templates.get(pos).filename, 2).execute(dummy);
-        MainActivity.textleft2.setText(templates.get(pos).filename);
-
-
+        if (render) {
+            new calcSpec3(1, templates.get(pos).filename, 2).execute("lowerGraph");
+        }
+        tmpFile = new File(templates.get(pos).filename);
+        MainActivity.textleft2.setText(tmpFile.getName());
+        spectrogramViewFilename[1] = templates.get(pos).filename;
+        timings.addSplit("display");
+        timings.dumpToLog();
         return 0.0;
     }
 
