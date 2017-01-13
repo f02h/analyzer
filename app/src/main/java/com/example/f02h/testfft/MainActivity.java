@@ -172,6 +172,8 @@ public class MainActivity extends AppCompatActivity {
             String a = "tesdt";
         }
 
+//        testDtw();
+
         spectroButton.setOnClickListener( new OnClickListener() {
             public void onClick(View v) {
                 Log.i("spectro button click", "******");
@@ -225,9 +227,20 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean("pruned", item.isChecked());
             editor.commit();
             return true;
+        } else if (id == R.id.action_test) {
+            testDtw();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public static void testDtw() {
+        double test = 0.0;
+        currSearch = templatesList.get(2);
+        templatesList.remove(2);
+
+        test = recognize_dtw(currSearch, templatesList, "Cosine");
+
     }
 
     public static Handler rebuildCacheHandler = new Handler() {
@@ -328,8 +341,8 @@ public class MainActivity extends AppCompatActivity {
 //                @TODO add notification to not recognize dtw
                 double result = recognize_dtw(currSearch, templatesList, "Cosine");
             }
-            templatesList.add(currSearch);
-            write();
+//            templatesList.add(currSearch);
+//            write();
         }
 
         if (useCache != 1 && rebuildCache == 1) {
@@ -395,13 +408,13 @@ public class MainActivity extends AppCompatActivity {
             double sim = 0.0;
             if (fast) {
                 if (pruned) {
-                    timings.addSplit("pre pruned");
+//                    timings.addSplit("pre pruned");
                     sim = calcSpec3.PrunedDTW(unknown_template.spectro, templates.get(i).spectro);
-                    timings.addSplit("post pruned");
+                    timings.addSplit("post pruned"+ templates.get(i).filename);
                 } else {
-                    timings.addSplit("pre dtw");
+//                    timings.addSplit("pre dtw");
                     sim = calcSpec3.FastDTW(unknown_template.spectro, templates.get(i).spectro);
-                    timings.addSplit("post dtw");
+                    timings.addSplit("post dtw"+ templates.get(i).filename);
                 }
             } else {
                 SM_lj = calcSpec3.simmx(unknown_template.spectro, templates.get(i).spectro, distance_f);
@@ -427,7 +440,7 @@ public class MainActivity extends AppCompatActivity {
         double ave = sum / (nbrOfTemplates - 1);
 
         double conf = (ave - min) / ave * 100;
-        timings.addSplit("recognize");
+//        timings.addSplit("recognize");
         File tmpFile;
         boolean render = settings.getBoolean("render", true);
         if (render) {

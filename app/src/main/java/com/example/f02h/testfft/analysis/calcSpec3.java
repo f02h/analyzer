@@ -204,7 +204,7 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
     }
 
     private void calculateMfcc() {
-        int nbrOfMelFilters = 22;
+        int nbrOfMelFilters = 40;
         int startMelFreq = 0;
         double endMelFreq = 2595 * Math.log10(1 + (8000 / 2.0) / 700.0);
         double [] melFilters = linearScale(startMelFreq, endMelFreq, nbrOfMelFilters + 2);
@@ -508,7 +508,10 @@ public class calcSpec3 extends AsyncTask<String, Integer, String> {
         }
         double cost;
         double[][] DTW = new double[rows+1][columns+1];
-        int w = Math.abs(columns - rows);// window length -> |rows - columns|<= w
+//        int w = Math.abs(columns - rows);// window length -> |rows - columns|<= w
+        double percent = 0.1;
+        int tmpd = columns - rows;
+        int w = Math.abs((int)(tmpd - (tmpd*percent)));
         for (int i = 1; i <= rows; i++)
         {
             for (int j = Math.max(1, i - w); j <= Math.min(columns, i + w); j++)
