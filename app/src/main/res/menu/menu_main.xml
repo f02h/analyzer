@@ -31,9 +31,5 @@
         android:checkable="true"
         android:checked="true"/>
 
-    <item
-        android:id="@+id/action_test"
-        android:title="Pruned DTW"
-        android:orderInCategory="202"
-        app:showAsAction="never"/>
+
 </menu>

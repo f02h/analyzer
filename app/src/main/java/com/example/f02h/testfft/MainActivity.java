@@ -227,8 +227,6 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean("pruned", item.isChecked());
             editor.commit();
             return true;
-        } else if (id == R.id.action_test) {
-            testDtw();
         }
 
         return super.onOptionsItemSelected(item);
@@ -408,11 +406,11 @@ public class MainActivity extends AppCompatActivity {
             double sim = 0.0;
             if (fast) {
                 if (pruned) {
-//                    timings.addSplit("pre pruned");
+                    timings.addSplit("pre pruned");
                     sim = calcSpec3.PrunedDTW(unknown_template.spectro, templates.get(i).spectro);
                     timings.addSplit("post pruned"+ templates.get(i).filename);
                 } else {
-//                    timings.addSplit("pre dtw");
+                    timings.addSplit("pre dtw");
                     sim = calcSpec3.FastDTW(unknown_template.spectro, templates.get(i).spectro);
                     timings.addSplit("post dtw"+ templates.get(i).filename);
                 }
